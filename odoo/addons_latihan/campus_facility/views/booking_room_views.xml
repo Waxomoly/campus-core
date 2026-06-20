@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="view_campus_booking_list" model="ir.ui.view">
-        <field name="name">campus.facility.booking.list</field>
-        <field name="model">campus.facility.booking</field>
+        <field name="name">campus.room.booking.list</field>
+        <field name="model">campus.room.booking</field>
         <field name="arch" type="xml">
             <list string="Booking">
                 <field name="name"/>
-                <field name="facility_id"/>
+                <field name="room_id"/>
                 <field name="mahasiswa_id"/>
                 <field name="tanggal_mulai"/>
                 <field name="tanggal_selesai"/>
@@ -20,10 +20,10 @@
     </record>
 
     <record id="view_campus_booking_form" model="ir.ui.view">
-        <field name="name">campus.facility.booking.form</field>
-        <field name="model">campus.facility.booking</field>
+        <field name="name">campus.room.booking.form</field>
+        <field name="model">campus.room.booking</field>
         <field name="arch" type="xml">
-            <form string="Booking Fasilitas">
+            <form string="Booking Ruangan">
                 <header>
                     <button name="action_submit" string="Submit" type="object" class="oe_highlight" invisible="state != 'draft'"/>
                     <button name="action_approve" string="Approve" type="object" class="oe_highlight" invisible="state != 'submitted'"/>
@@ -38,7 +38,7 @@
                     </div>
                     <group>
                         <group>
-                            <field name="facility_id" readonly="state != 'draft'"/>
+                            <field name="room_id" readonly="state != 'draft'"/>
                             <field name="mahasiswa_id" readonly="state != 'draft'"/>
                             <field name="keperluan" readonly="state != 'draft'"/>
                         </group>
@@ -46,6 +46,7 @@
                             <field name="tanggal_mulai" readonly="state != 'draft'"/>
                             <field name="tanggal_selesai" readonly="state != 'draft'"/>
                             <field name="jumlah_peserta" readonly="state != 'draft'"/>
+                            <field name="kapasitas"/>
                         </group>
                     </group>
                 </sheet>
@@ -54,16 +55,16 @@
     </record>
 
     <record id="view_campus_booking_search" model="ir.ui.view">
-        <field name="name">campus.facility.booking.search</field>
-        <field name="model">campus.facility.booking</field>
+        <field name="name">campus.room.booking.search</field>
+        <field name="model">campus.room.booking</field>
         <field name="arch" type="xml">
             <search string="Cari Booking">
                 <field name="name"/>
-                <field name="facility_id"/>
+                <field name="room_id"/>
                 <field name="mahasiswa_id"/>
                 <filter name="filter_approved" string="Approved" domain="[('state', '=', 'approved')]"/>
                 <group>
-                    <filter name="group_facility" string="Fasilitas" context="{'group_by': 'facility_id'}"/>
+                    <filter name="group_room" string="Ruangan" context="{'group_by': 'room_id'}"/>
                     <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
                 </group>
             </search>
@@ -71,12 +72,12 @@
     </record>
 
     <record id="action_campus_booking" model="ir.actions.act_window">
-        <field name="name">Booking Fasilitas</field>
-        <field name="res_model">campus.facility.booking</field>
+        <field name="name">Booking Ruangan</field>
+        <field name="res_model">campus.room.booking</field>
         <field name="view_mode">list,form</field>
     </record>
 
     <menuitem id="menu_campus_booking" name="Booking / Reservasi"
-              parent="menu_campus_facility_root"
+              parent="menu_campus_room_root"
               action="action_campus_booking" sequence="20"/>
 </odoo>
