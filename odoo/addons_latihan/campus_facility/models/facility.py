@@ -15,7 +15,7 @@ class CampusFacility(models.Model):
         ('aula', 'Aula'),
         ('lain', 'Lainnya'),
     ], string='Tipe', default='ruangan', required=True)
-    kapasitas = fields.Integer(string='Kapasitas', default=30, required=True)
+    kapasitas = fields.Integer(string='Kapasitas', default=0, required=True)
     state = fields.Selection([
         ('tersedia', 'Tersedia'),
         ('maintenance', 'Maintenance'),
