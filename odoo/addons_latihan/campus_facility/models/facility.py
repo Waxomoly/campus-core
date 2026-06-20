@@ -1,20 +1,31 @@
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
 
+class CampusFacilityType(models.Model):
+    _name = 'campus.facility.type'
+    _description = 'Master Tipe Fasilitas'
+    _order = 'name'
+
+    name = fields.Char(string='Nama Tipe', required=True)
+    code_prefix = fields.Char(string='Prefix Kode', required=True, help="Contoh: LAB, KLS, AULA")
+
+    active = fields.Boolean(string='Active', default=True)
+
+    _sql_constraints = [
+        ('name_unique', 'unique(name)', 'Nama tipe fasilitas sudah ada!'),
+        ('prefix_unique', 'unique(code_prefix)', 'Prefix kode sudah digunakan!')
+    ]
 
 class CampusFacility(models.Model):
     _name = 'campus.facility'
     _description = 'Data Fasilitas / Ruangan'
     _order = 'name'
 
-    kode = fields.Char(string='Kode Fasilitas', required=True, copy=False, index=True)
+    kode = fields.Char(string='Kode Fasilitas', required=True, copy=False, index=True, default='/')
     name = fields.Char(string='Nama Fasilitas', required=True)
-    tipe = fields.Selection([
-        ('ruangan', 'Ruang Kelas'),
-        ('lab', 'Laboratorium'),
-        ('aula', 'Aula'),
-        ('lain', 'Lainnya'),
-    ], string='Tipe', default='ruangan', required=True)
+
+    tipe_id = fields.Many2one('campus.facility.type', string='Tipe Fasilitas', required=True)
+
     kapasitas = fields.Integer(string='Kapasitas', default=0, required=True)
     state = fields.Selection([
         ('tersedia', 'Tersedia'),
@@ -40,6 +51,37 @@ class CampusFacility(models.Model):
         for record in self:
             if record.kapasitas <= 0:
                 raise ValidationError("Kapasitas harus lebih besar dari 0!")
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get('kode', '/') == '/':
+                # Ambil record tipe berdasarkan tipe_id yang dipilih
+                tipe = self.env['campus.facility.type'].browse(vals.get('tipe_id'))
+                if tipe:
+                    prefix = (tipe.code_prefix or 'FAC').upper()
+
+                    # Buat kode sequence unik berdasarkan prefix, misal: 'campus.facility.lab'
+                    seq_code = f'campus.facility.{prefix.lower()}'
+
+                    # Coba minta angka selanjutnya dari database
+                    sequence = self.env['ir.sequence'].next_by_code(seq_code)
+
+                    # Jika sequence untuk tipe ini BELUM ADA, kita buatkan otomatis secara on-the-fly!
+                    if not sequence:
+                        self.env['ir.sequence'].sudo().create({
+                            'name': f'Sequence Fasilitas - {tipe.name}',
+                            'code': seq_code,
+                            'padding': 5,
+                            'company_id': False,
+                        })
+                        # Panggil lagi setelah dibuat
+                        sequence = self.env['ir.sequence'].next_by_code(seq_code)
+
+                    vals['kode'] = f"{prefix}-{sequence}"
+                else:
+                    raise ValidationError("Tipe fasilitas harus dipilih untuk membuat kode!")
+        return super().create(vals_list)
 
     # Workflow maintenance request
     def action_set_maintenance(self):

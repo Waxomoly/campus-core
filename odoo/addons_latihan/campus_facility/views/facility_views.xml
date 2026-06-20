@@ -7,7 +7,7 @@
             <list string="Fasilitas">
                 <field name="kode"/>
                 <field name="name"/>
-                <field name="tipe"/>
+                <field name="tipe_id"/>
                 <field name="kapasitas"/>
                 <field name="state" widget="badge"
                        decoration-success="state == 'tersedia'"
@@ -39,7 +39,7 @@
                             <field name="name"/>
                         </group>
                         <group>
-                            <field name="tipe"/>
+                            <field name="tipe_id"/>
                             <field name="kapasitas"/>
                         </group>
                     </group>
@@ -70,7 +70,7 @@
                 <field name="name"/>
                 <filter name="filter_tersedia" string="Tersedia" domain="[('state', '=', 'tersedia')]"/>
                 <group>
-                    <filter name="group_tipe" string="Tipe" context="{'group_by': 'tipe'}"/>
+                    <filter name="group_tipe" string="Tipe" context="{'group_by': 'tipe_id'}"/>
                 </group>
             </search>
         </field>
@@ -80,6 +80,38 @@
         <field name="name">Fasilitas</field>
         <field name="res_model">campus.facility</field>
         <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="view_campus_facility_type_form" model="ir.ui.view">
+        <field name="name">campus.facility.type.form</field>
+        <field name="model">campus.facility.type</field>
+        <field name="arch" type="xml">
+            <form string="Tipe Fasilitas">
+                <sheet>
+
+                    <field name="active" invisible="1"/>
+
+                    <widget name="web_ribbon" title="Archived" bg_color="bg-danger" invisible="active"/>
+                    <group>
+                        <field name="active" invisible="1"/>
+                        <field name="name" placeholder="Misal: Laboratorium"/>
+                        <field name="code_prefix" placeholder="Misal: LAB"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_campus_facility_type_search" model="ir.ui.view">
+        <field name="name">campus.facility.type.search</field>
+        <field name="model">campus.facility.type</field>
+        <field name="arch" type="xml">
+            <search string="Cari Tipe Fasilitas">
+                <field name="name"/>
+                <field name="code_prefix"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
     </record>
 
     <menuitem id="menu_campus_facility_root" name="Fasilitas"
