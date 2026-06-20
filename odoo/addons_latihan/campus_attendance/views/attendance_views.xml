@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_campus_attendance_list" model="ir.ui.view">
+        <field name="name">campus.attendance.session.list</field>
+        <field name="model">campus.attendance.session</field>
+        <field name="arch" type="xml">
+            <list string="Sesi Absensi">
+                <field name="name"/>
+                <field name="kelas_id"/>
+                <field name="tanggal"/>
+                <field name="pertemuan"/>
+                <field name="jumlah_hadir"/>
+                <field name="jumlah_mahasiswa"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-success="state == 'confirmed'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_campus_attendance_form" model="ir.ui.view">
+        <field name="name">campus.attendance.session.form</field>
+        <field name="model">campus.attendance.session</field>
+        <field name="arch" type="xml">
+            <form string="Sesi Absensi">
+                <header>
+                    <button name="action_generate_attendance" string="Generate Peserta" type="object" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_confirm" string="Confirm" type="object" class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_reset" string="Set to Draft" type="object" invisible="state != 'confirmed'"/>
+                    <button name="%(action_report_attendance)d" string="Cetak Rekap" type="action" class="btn-secondary"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="kelas_id" readonly="state != 'draft'"/>
+                            <field name="tanggal" readonly="state != 'draft'"/>
+                            <field name="pertemuan" readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="jumlah_hadir"/>
+                            <field name="jumlah_mahasiswa"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Daftar Hadir" name="daftar_hadir">
+                            <field name="line_ids" readonly="state == 'confirmed'">
+                                <list editable="bottom">
+                                    <field name="mahasiswa_id"/>
+                                    <field name="status"/>
+                                    <field name="keterangan"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_campus_attendance_search" model="ir.ui.view">
+        <field name="name">campus.attendance.session.search</field>
+        <field name="model">campus.attendance.session</field>
+        <field name="arch" type="xml">
+            <search string="Cari Sesi Absensi">
+                <field name="name"/>
+                <field name="kelas_id"/>
+                <filter name="filter_confirmed" string="Confirmed" domain="[('state', '=', 'confirmed')]"/>
+                <group>
+                    <filter name="group_kelas" string="Kelas" context="{'group_by': 'kelas_id'}"/>
+                    <filter name="group_tanggal" string="Tanggal" context="{'group_by': 'tanggal'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_campus_attendance" model="ir.actions.act_window">
+        <field name="name">Absensi</field>
+        <field name="res_model">campus.attendance.session</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+<!--    campus attendance line-->
+    <record id="view_campus_attendance_line_list" model="ir.ui.view">
+    <field name="name">campus.attendance.line.list</field>
+    <field name="model">campus.attendance.line</field>
+    <field name="arch" type="xml">
+        <list string="Riwayat Absensi">
+            <field name="session_id"/>
+            <field name="status" widget="badge"
+                   decoration-success="status == 'hadir'"
+                   decoration-warning="status == 'izin' or status == 'sakit'"
+                   decoration-danger="status == 'alpha'"/>
+            <field name="keterangan"/>
+        </list>
+    </field>
+    </record>
+
+    <menuitem id="menu_campus_attendance" name="Absensi"
+              parent="campus_core.menu_campus_academic"
+              action="action_campus_attendance" sequence="30"/>
+</odoo>

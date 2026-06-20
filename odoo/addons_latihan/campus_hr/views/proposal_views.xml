@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_campus_proposal_list" model="ir.ui.view">
+        <field name="name">campus.proposal.list</field>
+        <field name="model">campus.proposal</field>
+        <field name="arch" type="xml">
+            <list string="Proposal">
+                <field name="name"/>
+                <field name="judul"/>
+                <field name="organisasi_id"/>
+                <field name="pembina_id" optional="show"/>
+                <field name="tanggal_kegiatan"/>
+                <field name="anggaran"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'submitted'"
+                       decoration-success="state == 'approved'"
+                       decoration-danger="state == 'rejected'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_campus_proposal_form" model="ir.ui.view">
+        <field name="name">campus.proposal.form</field>
+        <field name="model">campus.proposal</field>
+        <field name="arch" type="xml">
+            <form string="Proposal Kegiatan">
+                <header>
+                    <button name="action_submit" string="Ajukan" type="object" class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_approve" string="Approve" type="object" class="oe_highlight"
+                            invisible="state != 'submitted'" groups="campus_core.group_campus_lecturer"/>
+                    <button name="action_reject" string="Reject" type="object" class="btn-danger"
+                            invisible="state != 'submitted'" groups="campus_core.group_campus_lecturer"/>
+                    <button name="action_reset" string="Set to Draft" type="object" invisible="state not in ('submitted', 'rejected')"/>
+                    <button name="%(action_report_proposal)d" string="Cetak Proposal" type="action" class="btn-secondary"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,approved,rejected"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="judul" readonly="state != 'draft'"/>
+                            <field name="organisasi_id" readonly="state != 'draft'"/>
+                            <field name="tipe_id" readonly="1"/>
+                            <field name="pembina_id" readonly="1"/>
+                            <field name="ketua_panitia_id" readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="tanggal_kegiatan" readonly="state != 'draft'"/>
+                            <field name="anggaran" readonly="state != 'draft'"/>
+                            <field name="file_proposal" filename="file_proposal_name"
+                                   readonly="state != 'draft'" widget="binary"/>
+                            <field name="file_proposal_name" invisible="1"/>
+                            <field name="tanggal_masuk" readonly="1" invisible="not tanggal_masuk"/>
+                            <field name="tanggal_disetujui" readonly="1" invisible="not tanggal_disetujui"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Struktur Kepanitiaan" name="panitia">
+                            <field name="panitia_ids" readonly="state != 'draft'">
+                                <list editable="bottom">
+                                    <field name="divisi_id"/>
+                                    <field name="divisi_is_bph" column_invisible="1"/>
+                                    <field name="mahasiswa_id"/>
+                                    <field name="jabatan_id"
+                                           domain="[('is_bph', '=', divisi_is_bph)]"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Deskripsi Kegiatan (opsional)" name="deskripsi">
+                            <field name="deskripsi" readonly="state != 'draft'"
+                                   placeholder="Ringkasan singkat (opsional). Detail lengkap silakan unggah di File Proposal."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_campus_proposal_calendar" model="ir.ui.view">
+        <field name="name">campus.proposal.calendar</field>
+        <field name="model">campus.proposal</field>
+        <field name="arch" type="xml">
+            <calendar string="Kalender Kegiatan" date_start="tanggal_kegiatan"
+                      color="organisasi_id" mode="month">
+                <field name="judul"/>
+                <field name="organisasi_id"/>
+                <field name="state"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="view_campus_proposal_search" model="ir.ui.view">
+        <field name="name">campus.proposal.search</field>
+        <field name="model">campus.proposal</field>
+        <field name="arch" type="xml">
+            <search string="Cari Proposal">
+                <field name="name"/>
+                <field name="judul"/>
+                <field name="organisasi_id"/>
+                <field name="pembina_id"/>
+                <filter name="filter_approved" string="Approved" domain="[('state', '=', 'approved')]"/>
+                <filter name="filter_submitted" string="Menunggu Approval" domain="[('state', '=', 'submitted')]"/>
+                <group>
+                    <filter name="group_organisasi" string="Organisasi" context="{'group_by': 'organisasi_id'}"/>
+                    <filter name="group_pembina" string="Dosen Pembina" context="{'group_by': 'pembina_id'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_campus_proposal" model="ir.actions.act_window">
+        <field name="name">Proposal Kegiatan</field>
+        <field name="res_model">campus.proposal</field>
+        <field name="view_mode">list,calendar,form</field>
+    </record>
+
+    <menuitem id="menu_campus_proposal" name="Proposal Kegiatan"
+              parent="menu_campus_organisasi_root"
+              action="action_campus_proposal" sequence="20"/>
+</odoo>

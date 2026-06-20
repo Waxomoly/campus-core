@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ============================================================ -->
+    <!-- TIPE ORGANISASI                                              -->
+    <!-- ============================================================ -->
+    <record id="view_campus_organisasi_tipe_list" model="ir.ui.view">
+        <field name="name">campus.organisasi.tipe.list</field>
+        <field name="model">campus.organisasi.tipe</field>
+        <field name="arch" type="xml">
+            <list string="Tipe Organisasi" editable="bottom">
+                <field name="kode"/>
+                <field name="name"/>
+                <field name="deskripsi"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_campus_organisasi_tipe_form" model="ir.ui.view">
+        <field name="name">campus.organisasi.tipe.form</field>
+        <field name="model">campus.organisasi.tipe</field>
+        <field name="arch" type="xml">
+            <form string="Tipe Organisasi">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Nama Tipe Organisasi (mis. HIMA)"/></h1>
+                    </div>
+                    <group>
+                        <field name="kode"/>
+                        <field name="deskripsi"/>
+                    </group>
+                    <notebook>
+                        <page string="Jabatan Khusus" name="jabatan">
+                            <field name="jabatan_ids" context="{'default_tipe_id': id}">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_campus_organisasi_tipe" model="ir.actions.act_window">
+        <field name="name">Tipe Organisasi</field>
+        <field name="res_model">campus.organisasi.tipe</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- JABATAN                                                      -->
+    <!-- ============================================================ -->
+    <record id="view_campus_jabatan_list" model="ir.ui.view">
+        <field name="name">campus.jabatan.list</field>
+        <field name="model">campus.jabatan</field>
+        <field name="arch" type="xml">
+            <list string="Jabatan" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="tipe_id" placeholder="(Kosong = berlaku semua tipe)"/>
+                <field name="is_umum"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_campus_jabatan_search" model="ir.ui.view">
+        <field name="name">campus.jabatan.search</field>
+        <field name="model">campus.jabatan</field>
+        <field name="arch" type="xml">
+            <search string="Cari Jabatan">
+                <field name="name"/>
+                <field name="tipe_id"/>
+                <filter name="filter_umum" string="Berlaku Umum" domain="[('tipe_id', '=', False)]"/>
+                <group>
+                    <filter name="group_tipe" string="Tipe Organisasi" context="{'group_by': 'tipe_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_campus_jabatan" model="ir.actions.act_window">
+        <field name="name">Jabatan</field>
+        <field name="res_model">campus.jabatan</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Buat data Jabatan</p>
+            <p>Kosongkan Tipe Organisasi bila jabatan berlaku untuk semua tipe.</p>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- JABATAN KEPANITIAAN                                          -->
+    <!-- ============================================================ -->
+    <record id="view_campus_jabatan_panitia_list" model="ir.ui.view">
+        <field name="name">campus.jabatan.panitia.list</field>
+        <field name="model">campus.jabatan.panitia</field>
+        <field name="arch" type="xml">
+            <list string="Jabatan Kepanitiaan" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="is_bph"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_campus_jabatan_panitia" model="ir.actions.act_window">
+        <field name="name">Jabatan Kepanitiaan</field>
+        <field name="res_model">campus.jabatan.panitia</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- DIVISI KEPANITIAAN                                           -->
+    <!-- ============================================================ -->
+    <record id="view_campus_divisi_list" model="ir.ui.view">
+        <field name="name">campus.divisi.list</field>
+        <field name="model">campus.divisi</field>
+        <field name="arch" type="xml">
+            <list string="Divisi" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="is_bph"/>
+                <field name="deskripsi"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_campus_divisi" model="ir.actions.act_window">
+        <field name="name">Divisi</field>
+        <field name="res_model">campus.divisi</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- MENUS (di bawah root Organisasi)                            -->
+    <!-- ============================================================ -->
+    <menuitem id="menu_campus_organisasi_master" name="Master Data"
+              parent="menu_campus_organisasi_root" sequence="90"
+              groups="campus_core.group_campus_lecturer"/>
+    <menuitem id="menu_campus_organisasi_tipe" name="Tipe Organisasi"
+              parent="menu_campus_organisasi_master"
+              action="action_campus_organisasi_tipe" sequence="10"/>
+    <menuitem id="menu_campus_jabatan" name="Jabatan"
+              parent="menu_campus_organisasi_master"
+              action="action_campus_jabatan" sequence="20"/>
+    <menuitem id="menu_campus_jabatan_panitia" name="Jabatan Kepanitiaan"
+              parent="menu_campus_organisasi_master"
+              action="action_campus_jabatan_panitia" sequence="30"/>
+    <menuitem id="menu_campus_divisi" name="Divisi Kepanitiaan"
+              parent="menu_campus_organisasi_master"
+              action="action_campus_divisi" sequence="40"/>
+</odoo>

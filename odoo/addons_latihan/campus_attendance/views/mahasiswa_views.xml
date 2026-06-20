@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_campus_mahasiswa_form_attendance" model="ir.ui.view">
+        <field name="name">campus.mahasiswa.form.attendance</field>
+        <field name="model">campus.mahasiswa</field>
+        <field name="inherit_id" ref="campus_core.view_campus_mahasiswa_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/group[1]" position="before">
+                <div class="oe_button_box" name="button_box_attendance">
+                    <button class="oe_stat_button" type="object"
+                            name="action_view_attendance" icon="fa-check-square-o">
+                        <field name="attendance_count" widget="statinfo" string="Absensi"/>
+                    </button>
+                </div>
+                <div class="alert alert-warning" role="alert" invisible="not warning_kehadiran">
+                    Peringatan: Persentase kehadiran mahasiswa ini di bawah 75%!
+                </div>
+            </xpath>
+            <xpath expr="//sheet/group[1]" position="after">
+                <group string="Rekap Kehadiran">
+                    <field name="persentase_kehadiran"/>
+                    <field name="warning_kehadiran"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

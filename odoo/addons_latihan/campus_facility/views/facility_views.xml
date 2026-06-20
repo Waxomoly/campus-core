@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_campus_facility_list" model="ir.ui.view">
+        <field name="name">campus.facility.list</field>
+        <field name="model">campus.facility</field>
+        <field name="arch" type="xml">
+            <list string="Fasilitas">
+                <field name="kode"/>
+                <field name="name"/>
+                <field name="tipe"/>
+                <field name="kapasitas"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'tersedia'"
+                       decoration-danger="state == 'maintenance'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_campus_facility_form" model="ir.ui.view">
+        <field name="name">campus.facility.form</field>
+        <field name="model">campus.facility</field>
+        <field name="arch" type="xml">
+            <form string="Fasilitas">
+                <header>
+                    <button name="action_set_maintenance" string="Set Maintenance" type="object" class="btn-danger" invisible="state == 'maintenance'"/>
+                    <button name="action_set_available" string="Set Tersedia" type="object" class="oe_highlight" invisible="state == 'tersedia'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="tersedia,maintenance"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" type="object"
+                                name="action_view_booking" icon="fa-calendar">
+                            <field name="booking_count" widget="statinfo" string="Booking"/>
+                        </button>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="kode"/>
+                            <field name="name"/>
+                        </group>
+                        <group>
+                            <field name="tipe"/>
+                            <field name="kapasitas"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Riwayat Booking" name="booking">
+                            <field name="booking_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="mahasiswa_id"/>
+                                    <field name="tanggal_mulai"/>
+                                    <field name="tanggal_selesai"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_campus_facility_search" model="ir.ui.view">
+        <field name="name">campus.facility.search</field>
+        <field name="model">campus.facility</field>
+        <field name="arch" type="xml">
+            <search string="Cari Fasilitas">
+                <field name="kode"/>
+                <field name="name"/>
+                <filter name="filter_tersedia" string="Tersedia" domain="[('state', '=', 'tersedia')]"/>
+                <group>
+                    <filter name="group_tipe" string="Tipe" context="{'group_by': 'tipe'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_campus_facility" model="ir.actions.act_window">
+        <field name="name">Fasilitas</field>
+        <field name="res_model">campus.facility</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_campus_facility_root" name="Fasilitas"
+              parent="campus_core.menu_campus_root" sequence="30"/>
+    <menuitem id="menu_campus_facility" name="Data Fasilitas"
+              parent="menu_campus_facility_root"
+              action="action_campus_facility" sequence="10"/>
+</odoo>

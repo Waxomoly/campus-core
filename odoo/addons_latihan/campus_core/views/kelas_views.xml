@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_campus_kelas_list" model="ir.ui.view">
+        <field name="name">campus.kelas.list</field>
+        <field name="model">campus.kelas</field>
+        <field name="arch" type="xml">
+            <list string="Daftar Kelas">
+                <field name="mata_kuliah_id"/>
+                <field name="name"/>
+                <field name="semester"/>
+                <field name="dosen_id"/>
+                <field name="hari"/>
+                <field name="jam_mulai" widget="float_time"/>
+                <field name="jam_selesai" widget="float_time"/>
+                <field name="ruangan"/>
+                <field name="kuota"/>
+                <field name="terisi"/>
+                <field name="sisa_kuota"/>
+                <field name="is_available" widget="boolean_toggle"
+                       decoration-success="is_available == True"
+                       decoration-danger="is_available == False"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_campus_kelas_form" model="ir.ui.view">
+        <field name="name">campus.kelas.form</field>
+        <field name="model">campus.kelas</field>
+        <field name="arch" type="xml">
+            <form string="Form Kelas">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Kelas (A/B/C)"/></h1>
+                    </div>
+                    <group>
+                        <group string="Mata Kuliah">
+                            <field name="mata_kuliah_id"/>
+                            <field name="sks"/>
+                           <field name="dosen_id" domain="[('id', 'in', mata_kuliah_id.dosen_ids)]" invisible="not mata_kuliah_id"/>
+                            <field name="semester" placeholder="Semester Gasal 2025/2026"/>
+                        </group>
+                        <group string="Jadwal">
+                            <field name="hari"/>
+                            <field name="jam_mulai" widget="float_time"/>
+                            <field name="jam_selesai" widget="float_time"/>
+                            <field name="ruangan"/>
+                        </group>
+                    </group>
+                    <group string="Kuota (Sistem Rebutan / FCFS)">
+                        <group>
+                            <field name="kuota"/>
+                            <field name="terisi"/>
+                        </group>
+                        <group>
+                            <field name="sisa_kuota"/>
+                            <field name="is_available"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Peserta" name="peserta">
+                            <field name="krs_line_ids" readonly="1">
+                                <list>
+                                    <field name="krs_id"/>
+                                    <field name="krs_state"/>
+                                    <field name="state" widget="badge"
+                                           decoration-info="state == 'pending'"
+                                           decoration-success="state == 'approved'"
+                                           decoration-danger="state == 'rejected'"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_campus_kelas_search" model="ir.ui.view">
+        <field name="name">campus.kelas.search</field>
+        <field name="model">campus.kelas</field>
+        <field name="arch" type="xml">
+            <search string="Cari Kelas">
+                <field name="mata_kuliah_id"/>
+                <field name="name"/>
+                <field name="semester"/>
+                <field name="dosen_id"/>
+                <filter name="filter_available" string="Tersedia" domain="[('is_available', '=', True)]"/>
+                <filter name="filter_full" string="Penuh" domain="[('is_available', '=', False)]"/>
+                <group>
+                    <filter name="group_mk" string="Mata Kuliah" context="{'group_by': 'mata_kuliah_id'}"/>
+                    <filter name="group_semester" string="Semester" context="{'group_by': 'semester'}"/>
+                    <filter name="group_hari" string="Hari" context="{'group_by': 'hari'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_campus_kelas" model="ir.actions.act_window">
+        <field name="name">Kelas</field>
+        <field name="res_model">campus.kelas</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_campus_kelas" name="Kelas" parent="menu_campus_master" action="action_campus_kelas" sequence="40"/>
+</odoo>
