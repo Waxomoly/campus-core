@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_campus_mahasiswa_form_facility" model="ir.ui.view">
+        <field name="name">campus.mahasiswa.form.facility</field>
+        <field name="model">campus.mahasiswa</field>
+        <field name="inherit_id" ref="campus_core.view_campus_mahasiswa_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/group[1]" position="before">
+                <div class="oe_button_box" name="button_box_facility">
+                    <button class="oe_stat_button" type="object"
+                            name="action_view_booking" icon="fa-calendar-check-o">
+                        <field name="booking_count" widget="statinfo" string="Booking"/>
+                    </button>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

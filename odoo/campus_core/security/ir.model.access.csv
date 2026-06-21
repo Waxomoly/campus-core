@@ -1,0 +1,10 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_campus_fakultas,access.campus.fakultas,model_campus_fakultas,base.group_user,1,1,1,1
+access_campus_jurusan,access.campus.jurusan,model_campus_jurusan,base.group_user,1,1,1,1
+access_campus_prodi,access.campus.prodi,model_campus_prodi,base.group_user,1,1,1,1
+access_campus_mahasiswa,access.campus.mahasiswa,model_campus_mahasiswa,base.group_user,1,1,1,1
+access_campus_dosen,access.campus.dosen,model_campus_dosen,base.group_user,1,1,1,1
+access_campus_mata_kuliah,access.campus.mata_kuliah,model_campus_mata_kuliah,base.group_user,1,1,1,1
+access_campus_kelas,access.campus.kelas,model_campus_kelas,base.group_user,1,1,1,1
+access_campus_krs,access.campus.krs,model_campus_krs,base.group_user,1,1,1,1
+access_campus_krs_line,access.campus.krs.line,model_campus_krs_line,base.group_user,1,1,1,1

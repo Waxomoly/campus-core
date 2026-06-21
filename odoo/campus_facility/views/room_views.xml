@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_campus_room_list" model="ir.ui.view">
+        <field name="name">campus.room.list</field>
+        <field name="model">campus.room</field>
+        <field name="arch" type="xml">
+            <list string="Ruangan">
+                <field name="kode"/>
+                <field name="name"/>
+                <field name="tipe_id"/>
+                <field name="kapasitas"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'tersedia'"
+                       decoration-danger="state == 'maintenance'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_campus_room_form" model="ir.ui.view">
+        <field name="name">campus.room.form</field>
+        <field name="model">campus.room</field>
+        <field name="arch" type="xml">
+            <form string="Ruangan">
+                <header>
+                    <button name="action_set_maintenance" string="Set Maintenance" type="object" class="btn-danger" invisible="state == 'maintenance'" groups="campus_facility.group_facility_manager"/>
+                    <button name="action_set_available" string="Set Tersedia" type="object" class="oe_highlight" invisible="state == 'tersedia'" groups="campus_facility.group_facility_manager"/>
+                    <field name="state" widget="statusbar" statusbar_visible="tersedia,maintenance"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" type="object"
+                                name="action_view_booking" icon="fa-calendar">
+                            <field name="booking_count" widget="statinfo" string="Booking"/>
+                        </button>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="kode"/>
+                            <field name="name"/>
+                        </group>
+                        <group>
+                            <field name="tipe_id"/>
+                            <field name="kapasitas"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Riwayat Booking" name="booking">
+                            <field name="booking_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="mahasiswa_id"/>
+                                    <field name="tanggal_mulai"/>
+                                    <field name="tanggal_selesai"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_campus_room_search" model="ir.ui.view">
+        <field name="name">campus.room.search</field>
+        <field name="model">campus.room</field>
+        <field name="arch" type="xml">
+            <search string="Cari Ruangan">
+                <field name="kode"/>
+                <field name="name"/>
+                <filter name="filter_tersedia" string="Tersedia" domain="[('state', '=', 'tersedia')]"/>
+                <group>
+                    <filter name="group_tipe" string="Tipe" context="{'group_by': 'tipe_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_campus_room" model="ir.actions.act_window">
+        <field name="name">Ruangan</field>
+        <field name="res_model">campus.room</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="view_campus_room_type_form" model="ir.ui.view">
+        <field name="name">campus.room.type.form</field>
+        <field name="model">campus.room.type</field>
+        <field name="arch" type="xml">
+            <form string="Tipe Ruangan">
+                <sheet>
+
+                    <field name="active" invisible="1"/>
+
+                    <widget name="web_ribbon" title="Archived" bg_color="bg-danger" invisible="active"/>
+                    <group>
+                        <field name="active" invisible="1"/>
+                        <field name="name" placeholder="Misal: Laboratorium"/>
+                        <field name="code_prefix" placeholder="Misal: LAB"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_campus_room_type_search" model="ir.ui.view">
+        <field name="name">campus.room.type.search</field>
+        <field name="model">campus.room.type</field>
+        <field name="arch" type="xml">
+            <search string="Cari Tipe Ruangan">
+                <field name="name"/>
+                <field name="code_prefix"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <menuitem id="menu_campus_room" name="Data Ruangan"
+              parent="menu_campus_root"
+              action="action_campus_room" sequence="10"/>
+</odoo>

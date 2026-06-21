@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_campus_dosen_list" model="ir.ui.view">
+        <field name="name">campus.dosen.list</field>
+        <field name="model">campus.dosen</field>
+        <field name="arch" type="xml">
+            <list string="Daftar Dosen">
+                <field name="nip"/>
+                <field name="name"/>
+                <field name="prodi_id"/>
+                <field name="jurusan_id"/>
+                <field name="fakultas_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_campus_dosen_form" model="ir.ui.view">
+        <field name="name">campus.dosen.form</field>
+        <field name="model">campus.dosen</field>
+        <field name="arch" type="xml">
+            <form string="Form Dosen">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Nama Dosen"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="nip"/>
+                        </group>
+                        <group>
+                            <field name="fakultas_id" required="1"/>
+                            <field name="prodi_id" required="1"/>
+                            <field name="jurusan_id"
+                                   help="Opsional. Kosongkan bila dosen tidak terikat pada jurusan tertentu."/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_campus_dosen_search" model="ir.ui.view">
+        <field name="name">campus.dosen.search</field>
+        <field name="model">campus.dosen</field>
+        <field name="arch" type="xml">
+            <search string="Cari Dosen">
+                <field name="nip"/>
+                <field name="name"/>
+                <field name="prodi_id"/>
+                <field name="fakultas_id"/>
+                <group>
+                    <filter name="group_fakultas" string="Fakultas" context="{'group_by': 'fakultas_id'}"/>
+                    <filter name="group_prodi" string="Prodi" context="{'group_by': 'prodi_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_campus_dosen" model="ir.actions.act_window">
+        <field name="name">Dosen</field>
+        <field name="res_model">campus.dosen</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_campus_dosen" name="Dosen" parent="menu_campus_master" action="action_campus_dosen" sequence="20"/>
+</odoo>

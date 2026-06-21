@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_facility_booking" model="ir.actions.report">
+        <field name="name">Bukti Booking Fasilitas</field>
+        <field name="model">campus.facility.booking</field>
+        <field name="report_type">qweb-html</field>
+        <field name="report_name">campus_facility.report_facility_booking_doc</field>
+        <field name="report_file">campus_facility.report_facility_booking_doc</field>
+        <field name="binding_model_id" ref="campus_facility.model_campus_facility_booking"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_facility_booking_doc">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2 class="text-center mt-4">BUKTI BOOKING FASILITAS</h2>
+                        <table class="table table-sm table-bordered mt-4">
+                            <tr><th style="width:30%">Nomor Booking</th><td><span t-field="doc.name"/></td></tr>
+                            <tr><th>Fasilitas</th><td><span t-field="doc.facility_id.name"/></td></tr>
+                            <tr><th>Peminjam</th><td><span t-field="doc.mahasiswa_id.name"/> (<span t-field="doc.mahasiswa_id.nim"/>)</td></tr>
+                            <tr><th>Keperluan</th><td><span t-field="doc.keperluan"/></td></tr>
+                            <tr><th>Tanggal Mulai</th><td><span t-field="doc.tanggal_mulai"/></td></tr>
+                            <tr><th>Tanggal Selesai</th><td><span t-field="doc.tanggal_selesai"/></td></tr>
+                            <tr><th>Jumlah Dipinjam</th><td><span t-field="doc.kuantitas_pinjam"/> Unit</td></tr>
+                            <tr><th>Status</th><td><span t-field="doc.state"/></td></tr>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

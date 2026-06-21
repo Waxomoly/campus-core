@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_campus_mahasiswa_form_academic" model="ir.ui.view">
+        <field name="name">campus.mahasiswa.form.academic</field>
+        <field name="model">campus.mahasiswa</field>
+        <field name="inherit_id" ref="campus_core.view_campus_mahasiswa_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/group[1]" position="before">
+                <div class="oe_button_box" name="button_box">
+                    <button class="oe_stat_button" type="object"
+                            name="action_view_transkrip" icon="fa-graduation-cap">
+                        <field name="transkrip_count" widget="statinfo" string="Transkrip"/>
+                    </button>
+                </div>
+            </xpath>
+            <xpath expr="//sheet/group[1]" position="after">
+                <notebook>
+                    <page string="Akademik" name="akademik">
+                        <group>
+                            <field name="ipk"/>
+                        </group>
+                        <field name="transkrip_ids" readonly="1">
+                            <list>
+                                <field name="name"/>
+                                <field name="ipk"/>
+                                <field name="status_kelulusan"/>
+                                <field name="state"/>
+                            </list>
+                        </field>
+                    </page>
+                </notebook>
+            </xpath>
+        </field>
+    </record>
+</odoo>

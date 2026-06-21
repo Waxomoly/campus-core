@@ -1,0 +1,121 @@
+from datetime import date
+
+from odoo import models, fields, api
+from odoo.exceptions import ValidationError
+
+# Rentang tahun untuk dropdown angkatan & semester aktif
+TAHUN_AWAL_ANGKATAN = 2015
+TAHUN_AWAL_SEMESTER = 2024
+
+
+class CampusMahasiswa(models.Model):
+    _name = 'campus.mahasiswa'
+    _description = 'Master Data Mahasiswa'
+    _order = 'nim'
+    _rec_names_search = ['name', 'nim']
+
+    nim = fields.Char(string='NIM', required=True, copy=False, index=True)
+    name = fields.Char(string='Nama Mahasiswa', required=True)
+
+    # ---- Data pribadi ----
+    tempat_lahir = fields.Char(string='Tempat Lahir')
+    tanggal_lahir = fields.Date(string='Tanggal Lahir')
+    jenis_kelamin = fields.Selection([
+        ('L', 'Laki-laki'),
+        ('P', 'Perempuan'),
+    ], string='Jenis Kelamin')
+    alamat = fields.Text(string='Alamat')
+
+    # ---- Data akademik ----
+    angkatan = fields.Selection(
+        selection='_get_angkatan_selection', string='Angkatan',
+        help='Tahun masuk mahasiswa.',
+    )
+    semester_aktif = fields.Selection(
+        selection='_get_semester_aktif_selection', string='Semester Aktif',
+        default='Semester Genap 2026/2027',
+        help='Periode semester berjalan, mis. Semester Gasal 2025/2026.',
+    )
+    ipk = fields.Float(string='IPK', digits=(3, 2))
+
+    fakultas_id = fields.Many2one(
+        'campus.fakultas', string='Fakultas',
+        ondelete='restrict', index=True,
+    )
+    prodi_id = fields.Many2one(
+        'campus.prodi', string='Program Studi',
+        ondelete='restrict', index=True,
+        domain="[('fakultas_id', '=', fakultas_id)]",
+    )
+    jurusan_id = fields.Many2one(
+        'campus.jurusan', string='Jurusan',
+        ondelete='restrict', index=True,
+        domain="[('prodi_id', '=', prodi_id)]",
+    )
+
+    status = fields.Selection([
+        ('aktif', 'Aktif'),
+        ('non_aktif', 'Non-Aktif'),
+        ('lulus', 'Lulus'),
+        ('cuti', 'Cuti'),
+    ], string='Status', default='aktif', required=True)
+
+    # ---- Kelulusan ----
+    total_sks_lulus = fields.Integer(
+        string='Total SKS Lulus', default=0,
+        help='Total SKS yang sudah diselesaikan (lulus). '
+             'Otomatis terisi bila modul Academic terpasang.',
+    )
+    status_kelulusan = fields.Selection([
+        ('belum', 'Belum Lulus'),
+        ('lulus', 'Lulus'),
+    ], string='Status Kelulusan', default='belum', required=True)
+
+    _nim_unique = models.Constraint('unique(nim)', 'NIM sudah terdaftar!')
+
+    # ------------------------------------------------------------------
+    # Pilihan dropdown dinamis (tahun ter-generate otomatis)
+    # ------------------------------------------------------------------
+    @api.model
+    def _get_angkatan_selection(self):
+        tahun_sekarang = date.today().year
+        return [
+            (str(tahun), str(tahun))
+            for tahun in range(TAHUN_AWAL_ANGKATAN, tahun_sekarang + 2)
+        ]
+
+    @api.model
+    def _get_semester_aktif_selection(self):
+        tahun_sekarang = date.today().year
+        opsi = []
+        for tahun in range(TAHUN_AWAL_SEMESTER, tahun_sekarang + 3):
+            tahun_ajaran = "%d/%d" % (tahun, tahun + 1)
+            opsi.append((
+                "Semester Gasal %s" % tahun_ajaran,
+                "Semester Gasal %s" % tahun_ajaran,
+            ))
+            opsi.append((
+                "Semester Genap %s" % tahun_ajaran,
+                "Semester Genap %s" % tahun_ajaran,
+            ))
+        return opsi
+
+    @api.onchange('fakultas_id')
+    def _onchange_fakultas_id(self):
+        if self.prodi_id and self.prodi_id.fakultas_id != self.fakultas_id:
+            self.prodi_id = False
+            self.jurusan_id = False
+
+    @api.onchange('prodi_id')
+    def _onchange_prodi_id(self):
+        if self.jurusan_id and self.jurusan_id.prodi_id != self.prodi_id:
+            self.jurusan_id = False
+
+    @api.constrains('ipk')
+    def _check_ipk(self):
+        for record in self:
+            if record.ipk < 0.0 or record.ipk > 4.0:
+                raise ValidationError(
+                    "IPK harus berada di rentang 0.00 - 4.00! "
+                    "(IPK %s saat ini: %.2f)" % (record.name, record.ipk)
+                )

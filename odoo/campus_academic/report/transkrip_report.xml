@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_transkrip" model="ir.actions.report">
+        <field name="name">Transkrip Nilai</field>
+        <field name="model">campus.transkrip</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">campus_academic.report_transkrip_document</field>
+        <field name="report_file">campus_academic.report_transkrip_document</field>
+        <field name="binding_model_id" ref="model_campus_transkrip"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_transkrip_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <div class="page">
+                    <h2 class="text-center">TRANSKRIP NILAI</h2>
+                    <div class="row mt-4">
+                        <div class="col-6">
+                            <p><strong>Nomor:</strong> <span t-field="doc.name"/></p>
+                            <p><strong>Mahasiswa:</strong> <span t-field="doc.mahasiswa_id.name"/></p>
+                            <p><strong>NIM:</strong> <span t-field="doc.mahasiswa_id.nim"/></p>
+                        </div>
+                        <div class="col-6">
+                            <p><strong>Fakultas:</strong> <span t-field="doc.mahasiswa_id.fakultas_id"/></p>
+                            <p><strong>Prodi:</strong> <span t-field="doc.mahasiswa_id.prodi_id"/></p>
+                            <p><strong>Jurusan:</strong> <span t-field="doc.mahasiswa_id.jurusan_id"/></p>
+                            <p><strong>Status:</strong> <span t-field="doc.status_kelulusan"/></p>
+                        </div>
+                    </div>
+                    <table class="table table-sm table-bordered mt-3">
+                        <thead>
+                            <tr>
+                                <th class="text-center fw-bold">Kode MK</th>
+                                <th class="text-center fw-bold">Mata Kuliah</th>
+                                <th class="text-center fw-bold">SKS</th>
+                                <th class="text-center fw-bold">Nilai Angka</th>
+                                <th class="text-center fw-bold">Nilai Huruf</th>
+                                <th class="text-center fw-bold">Bobot</th>
+                                <th class="text-center fw-bold">Mutu</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="doc.nilai_ids" t-as="line">
+                                <td><span t-field="line.mata_kuliah_id.kode_mk"/></td>
+                                <td><span t-field="line.mata_kuliah_id.name"/></td>
+                                <td class="text-end"><span t-field="line.sks"/></td>
+                                <td class="text-center"><span t-field="line.nilai_angka"/></td>
+                                <td class="text-center"><span t-field="line.nilai_huruf"/></td>
+                                <td class="text-end"><span t-field="line.bobot"/></td>
+                                <td class="text-end"><span t-field="line.nilai_mutu"/></td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="2" class="text-end fw-bold">Total</th>
+                                <th class="text-end fw-bold"><span t-field="doc.total_sks"/></th>
+                                <th colspan="3" class="text-end fw-bold">IPK</th>
+                                <th class="text-end fw-bold"><span t-field="doc.ipk"/></th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_campus_mahasiswa_form_hr" model="ir.ui.view">
+        <field name="name">campus.mahasiswa.form.hr</field>
+        <field name="model">campus.mahasiswa</field>
+        <field name="inherit_id" ref="campus_core.view_campus_mahasiswa_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/group[1]" position="before">
+                <div class="oe_button_box" name="button_box_hr">
+                    <button class="oe_stat_button" type="object"
+                            name="action_view_organisasi" icon="fa-users">
+                        <field name="organisasi_count" widget="statinfo" string="Organisasi"/>
+                    </button>
+                </div>
+            </xpath>
+            <xpath expr="//sheet/group[1]" position="after">
+                <notebook>
+                    <page string="Organisasi" name="organisasi">
+                        <field name="keanggotaan_ids" readonly="1">
+                            <list>
+                                <field name="organisasi_id"/>
+                                <field name="jabatan_id"/>
+                            </list>
+                        </field>
+                    </page>
+                </notebook>
+            </xpath>
+        </field>
+    </record>
+</odoo>
