@@ -11,10 +11,8 @@ class CampusFacilityType(models.Model):
 
     active = fields.Boolean(string='Active', default=True)
 
-    _sql_constraints = [
-        ('name_unique', 'unique(name)', 'Nama tipe fasilitas sudah ada!'),
-        ('prefix_unique', 'unique(code_prefix)', 'Prefix kode sudah digunakan!')
-    ]
+    _name_unique = models.Constraint('unique(name)', 'Nama tipe fasilitas sudah ada!')
+    _prefix_unique = models.Constraint('unique(code_prefix)', 'Prefix kode sudah digunakan!')
 
 class CampusFacility(models.Model):
     _name = 'campus.facility'
@@ -23,6 +21,7 @@ class CampusFacility(models.Model):
 
     kode = fields.Char(string='Kode Fasilitas', required=True, copy=False, index=True, default='/')
     name = fields.Char(string='Nama Fasilitas', required=True)
+    kuantitas = fields.Integer(string='Kuantitas', default=1, required=True)
 
     tipe_id = fields.Many2one('campus.facility.type', string='Tipe Fasilitas', required=True)
 
@@ -30,6 +29,9 @@ class CampusFacility(models.Model):
         ('tersedia', 'Tersedia'),
         ('maintenance', 'Maintenance'),
     ], string='Kondisi', default='tersedia', required=True, readonly=True, copy=False)
+
+    status_realtime = fields.Char(string='Status', compute='_compute_ketersediaan_sekarang')
+
     booking_ids = fields.One2many(
         'campus.facility.booking', 'facility_id', string='Daftar Booking',
     )
@@ -38,18 +40,19 @@ class CampusFacility(models.Model):
     )
 
     _kode_unique = models.Constraint('unique(kode)', 'Kode fasilitas sudah ada!')
-    _kapasitas_positive = models.Constraint('CHECK(kapasitas > 0)', 'Kapasitas harus lebih dari 0!')
+    _name_unique = models.Constraint('unique(name)', 'Nama fasilitas sudah ada!')
+    _kuantitas_positive = models.Constraint('CHECK(kuantitas > 0)', 'Kuantitas harus lebih dari 0!')
 
     @api.depends('booking_ids')
     def _compute_booking_count(self):
         for record in self:
             record.booking_count = len(record.booking_ids)
 
-    @api.constrains('kapasitas')
-    def _check_kapasitas(self):
+    @api.constrains('kuantitas')
+    def _check_kuantitas(self):
         for record in self:
-            if record.kapasitas <= 0:
-                raise ValidationError("Kapasitas harus lebih besar dari 0!")
+            if record.kuantitas < 0:
+                raise ValidationError("Kuantitas harus lebih besar atau sama dengan 0!")
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -99,3 +102,12 @@ class CampusFacility(models.Model):
             'domain': [('facility_id', '=', self.id)],
             'context': {'default_facility_id': self.id},
         }
+
+    def _compute_ketersediaan_sekarang(self):
+
+        for record in self:
+            if record.state == 'maintenance':
+                record.status_realtime = 'Maintenance'
+                continue
+
+            record.status_realtime = 'Tersedia'

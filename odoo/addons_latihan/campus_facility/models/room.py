@@ -11,10 +11,8 @@ class CampusRoomType(models.Model):
 
     active = fields.Boolean(string='Active', default=True)
 
-    _sql_constraints = [
-        ('name_unique', 'unique(name)', 'Nama tipe ruangan sudah ada!'),
-        ('prefix_unique', 'unique(code_prefix)', 'Prefix kode sudah digunakan!')
-    ]
+    _name_unique = models.Constraint('unique(name)', 'Nama tipe fasilitas sudah ada!')
+    _prefix_unique = models.Constraint('unique(code_prefix)', 'Prefix kode sudah digunakan!')
 
 class CampusRoom(models.Model):
     _name = 'campus.room'

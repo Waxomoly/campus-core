@@ -20,7 +20,8 @@ class CampusFacilityBooking(models.Model):
     keperluan = fields.Char(string='Keperluan', required=True)
     tanggal_mulai = fields.Datetime(string='Mulai', required=True)
     tanggal_selesai = fields.Datetime(string='Selesai', required=True)
-    jumlah_peserta = fields.Integer(string='Jumlah Peserta', default=1)
+
+    kuantitas_pinjam = fields.Integer(string='Jumlah Dipinjam', default=1, required=True)
 
     state = fields.Selection([
         ('draft', 'Draft'),
@@ -46,23 +47,35 @@ class CampusFacilityBooking(models.Model):
     # ------------------------------------------------------------------
     # Constraint
     # ------------------------------------------------------------------
-    @api.constrains('tanggal_mulai', 'tanggal_selesai', 'jumlah_peserta')
+    @api.constrains('tanggal_mulai', 'tanggal_selesai', 'kuantitas_pinjam', 'facility_id')
     def _check_booking(self):
         for record in self:
-            if record.tanggal_selesai <= record.tanggal_mulai:
-                raise ValidationError("Tanggal selesai harus setelah tanggal mulai!")
-            # cek bentrok dengan booking lain yang aktif
-            overlap = self.search([
+
+            if record.kuantitas_pinjam <= 0:
+                raise ValidationError("Jumlah dipinjam harus lebih dari 0!")
+
+            # Cari booking LAIN di fasilitas yang sama dan waktunya bertabrakan/overlap
+            overlapping_bookings = self.env['campus.facility.booking'].search([
                 ('id', '!=', record.id),
                 ('facility_id', '=', record.facility_id.id),
-                ('state', 'in', ('submitted', 'approved')),
+                ('state', 'in', ['submitted', 'approved']),
                 ('tanggal_mulai', '<', record.tanggal_selesai),
                 ('tanggal_selesai', '>', record.tanggal_mulai),
-            ], limit=1)
-            if overlap:
+            ])
+
+            # Hitung total kuantitas yang sudah dibooking pada jam tersebut
+            total_dipinjam = sum(overlapping_bookings.mapped('kuantitas_pinjam'))
+
+            # Asumsi field kuantitas di model facility Anda bernama 'kuantitas'
+            kuantitas_maksimal = record.facility_id.kuantitas
+
+            # Jika total pinjaman melebihi batas, tolak!
+            if (total_dipinjam + record.kuantitas_pinjam) > kuantitas_maksimal:
+                sisa = kuantitas_maksimal - total_dipinjam
                 raise ValidationError(
-                    "Fasilitas sudah dibooking pada rentang waktu tersebut (%s)!"
-                    % overlap.name
+                    f"Kuantitas tidak mencukupi!\n"
+                    f"Fasilitas '{record.facility_id.name}' pada jadwal tersebut sudah dipinjam {total_dipinjam} unit.\n"
+                    f"Sisa yang bisa dipinjam pada waktu tersebut: {sisa} unit."
                 )
 
     # ------------------------------------------------------------------

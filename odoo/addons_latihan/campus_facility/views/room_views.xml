@@ -22,8 +22,8 @@
         <field name="arch" type="xml">
             <form string="Ruangan">
                 <header>
-                    <button name="action_set_maintenance" string="Set Maintenance" type="object" class="btn-danger" invisible="state == 'maintenance'"/>
-                    <button name="action_set_available" string="Set Tersedia" type="object" class="oe_highlight" invisible="state == 'tersedia'"/>
+                    <button name="action_set_maintenance" string="Set Maintenance" type="object" class="btn-danger" invisible="state == 'maintenance'" groups="campus_facility.group_facility_manager"/>
+                    <button name="action_set_available" string="Set Tersedia" type="object" class="oe_highlight" invisible="state == 'tersedia'" groups="campus_facility.group_facility_manager"/>
                     <field name="state" widget="statusbar" statusbar_visible="tersedia,maintenance"/>
                 </header>
                 <sheet>
@@ -114,9 +114,7 @@
         </field>
     </record>
 
-    <menuitem id="menu_campus_room_root" name="Ruangan"
-              parent="campus_core.menu_campus_root" sequence="30"/>
     <menuitem id="menu_campus_room" name="Data Ruangan"
-              parent="menu_campus_room_root"
+              parent="menu_campus_root"
               action="action_campus_room" sequence="10"/>
 </odoo>

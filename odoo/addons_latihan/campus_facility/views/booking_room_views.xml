@@ -26,10 +26,10 @@
             <form string="Booking Ruangan">
                 <header>
                     <button name="action_submit" string="Submit" type="object" class="oe_highlight" invisible="state != 'draft'"/>
-                    <button name="action_approve" string="Approve" type="object" class="oe_highlight" invisible="state != 'submitted'"/>
-                    <button name="action_reject" string="Reject" type="object" class="btn-danger" invisible="state != 'submitted'"/>
+                    <button name="action_approve" string="Approve" type="object" class="oe_highlight" invisible="state != 'submitted'" groups="campus_facility.group_facility_manager"/>
+                    <button name="action_reject" string="Reject" type="object" class="btn-danger" invisible="state != 'submitted'" groups="campus_facility.group_facility_manager"/>
                     <button name="action_reset" string="Set to Draft" type="object" invisible="state not in ('submitted', 'rejected')"/>
-                    <button name="%(action_report_booking)d" string="Cetak" type="action" class="btn-secondary"/>
+                    <button name="%(action_report_room_booking)d" string="Cetak" invisible="state != 'approved'" type="action" class="btn-secondary"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,submitted,approved,rejected"/>
                 </header>
                 <sheet>
@@ -39,7 +39,7 @@
                     <group>
                         <group>
                             <field name="room_id" readonly="state != 'draft'"/>
-                            <field name="mahasiswa_id" readonly="state != 'draft'"/>
+                            <field name="mahasiswa_id" readonly="state != 'draft'" domain="[('status', '=', 'aktif')]"/>
                             <field name="keperluan" readonly="state != 'draft'"/>
                         </group>
                         <group>
@@ -71,13 +71,13 @@
         </field>
     </record>
 
-    <record id="action_campus_booking" model="ir.actions.act_window">
+    <record id="action_campus_room_booking" model="ir.actions.act_window">
         <field name="name">Booking Ruangan</field>
         <field name="res_model">campus.room.booking</field>
         <field name="view_mode">list,form</field>
     </record>
 
-    <menuitem id="menu_campus_booking" name="Booking / Reservasi"
-              parent="menu_campus_room_root"
-              action="action_campus_booking" sequence="20"/>
+    <menuitem id="menu_campus_room_booking" name="Booking Ruangan"
+              parent="menu_campus_root"
+              action="action_campus_room_booking" sequence="20"/>
 </odoo>

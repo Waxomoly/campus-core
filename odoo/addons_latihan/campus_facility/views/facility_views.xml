@@ -8,9 +8,12 @@
                 <field name="kode"/>
                 <field name="name"/>
                 <field name="tipe_id"/>
-                <field name="state" widget="badge"
-                       decoration-success="state == 'tersedia'"
-                       decoration-danger="state == 'maintenance'"/>
+
+                <field name="sisa_saat_ini"/>
+
+                <field name="status_realtime" widget="badge"
+                       decoration-success="status_realtime == 'Tersedia'"
+                       decoration-danger="status_realtime == 'Maintenance'"/>
             </list>
         </field>
     </record>
@@ -21,8 +24,8 @@
         <field name="arch" type="xml">
             <form string="Fasilitas">
                 <header>
-                    <button name="action_set_maintenance" string="Set Maintenance" type="object" class="btn-danger" invisible="state == 'maintenance'"/>
-                    <button name="action_set_available" string="Set Tersedia" type="object" class="oe_highlight" invisible="state == 'tersedia'"/>
+                    <button name="action_set_maintenance" string="Set Maintenance" type="object" class="btn-danger" invisible="state == 'maintenance'" groups="campus_facility.group_facility_manager"/>
+                    <button name="action_set_available" string="Set Tersedia" type="object" class="oe_highlight" invisible="state == 'tersedia'" groups="campus_facility.group_facility_manager"/>
                     <field name="state" widget="statusbar" statusbar_visible="tersedia,maintenance"/>
                 </header>
                 <sheet>
@@ -39,6 +42,7 @@
                         </group>
                         <group>
                             <field name="tipe_id"/>
+                            <field name="kuantitas"/>
                         </group>
                     </group>
                     <notebook>
@@ -112,9 +116,19 @@
         </field>
     </record>
 
-    <menuitem id="menu_campus_facility_root" name="Fasilitas"
+<!--    <record id="action_campus_facility_type" model="ir.actions.act_window">-->
+<!--        <field name="name">Tipe Fasilitas</field>-->
+<!--        <field name="res_model">campus.facility.type</field>-->
+<!--        <field name="view_mode">list,form</field>-->
+<!--    </record>-->
+
+<!--    <menuitem id="menu_campus_facility_type" name="Tipe Fasilitas"-->
+<!--              parent="menu_campus_facility_root"-->
+<!--              action="action_campus_facility_type" sequence="30"/>-->
+
+    <menuitem id="menu_campus_root" name="Fasilitas"
               parent="campus_core.menu_campus_root" sequence="30"/>
     <menuitem id="menu_campus_facility" name="Data Fasilitas"
-              parent="menu_campus_facility_root"
+              parent="menu_campus_root"
               action="action_campus_facility" sequence="10"/>
 </odoo>
