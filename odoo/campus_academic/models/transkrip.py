@@ -1,7 +1,7 @@
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
 
-NILAI_BOBOT = {
+nilai_bobot = {
     'A': 4.0,
     'B+': 3.5,
     'B': 3.0,
@@ -10,23 +10,13 @@ NILAI_BOBOT = {
     'D': 1.0,
     'E': 0.0,
 }
-# Syarat kelulusan
-SKS_LULUS = 144
-IPK_MINIMAL = 2.0
+# syarat kelulusan
+sks_lulus = 144
+ipk_minimal = 2.0
 
 
 def angka_ke_huruf(nilai_angka):
-    """Konversi nilai angka (0-100) menjadi nilai huruf.
-
-    Ketentuan:
-        >= 85        -> A  (4.0)
-        80 - 84.99   -> B+ (3.5)
-        75 - 79.99   -> B  (3.0)
-        70 - 74.99   -> C+ (2.5)
-        60 - 69.99   -> C  (2.0)
-        50 - 59.99   -> D  (1.0)
-        < 50         -> E  (0.0)
-    """
+    # konversi nilai angka ke huruf
     if nilai_angka >= 85:
         return 'A'
     elif nilai_angka >= 80:
@@ -59,23 +49,23 @@ class CampusTranskrip(models.Model):
     nilai_ids = fields.One2many(
         'campus.transkrip.nilai', 'transkrip_id', string='Daftar Nilai',
     )
+
     total_sks = fields.Integer(string='Total SKS', compute='_compute_ipk', store=True)
+
     total_mutu = fields.Float(string='Total Nilai Mutu', compute='_compute_ipk', store=True)
+
     ipk = fields.Float(string='IPK', compute='_compute_ipk', store=True, digits=(3, 2))
+
     status_kelulusan = fields.Selection([
         ('belum', 'Belum Lulus'),
         ('lulus', 'Lulus'),
     ], string='Status Kelulusan', compute='_compute_status', store=True)
+
     state = fields.Selection([
         ('draft', 'Draft'),
         ('submitted', 'Submitted'),
         ('approved', 'Approved'),
     ], string='Status', default='draft', required=True, readonly=True, copy=False)
-
-    _unique_mahasiswa = models.Constraint(
-        'unique(mahasiswa_id)',
-        'Mahasiswa ini sudah memiliki dokumen transkrip! Silakan update dokumen yang sudah ada.',
-    )
 
     @api.depends('mahasiswa_id.nim')
     def _compute_name(self):
@@ -97,16 +87,17 @@ class CampusTranskrip(models.Model):
     @api.depends('ipk', 'total_sks')
     def _compute_status(self):
         for record in self:
-            lulus = record.ipk >= IPK_MINIMAL and record.total_sks >= SKS_LULUS
+            lulus = record.ipk >= ipk_minimal and record.total_sks >= sks_lulus
             record.status_kelulusan = 'lulus' if lulus else 'belum'
 
 
-  # Constrains
+    # Constrains
     @api.constrains('nilai_ids')
     def _check_duplicate_mk(self):
         for record in self:
-            mk = record.nilai_ids.mapped('mata_kuliah_id')
-            if len(mk) != len(set(mk.ids)):
+            mk_ids = [line.mata_kuliah_id.id for line in record.nilai_ids if line.mata_kuliah_id]
+
+            if len(mk_ids) != len(set(mk_ids)):
                 raise ValidationError(
                     "Mata kuliah tidak boleh duplikat dalam satu transkrip!"
                 )
@@ -114,7 +105,6 @@ class CampusTranskrip(models.Model):
     @api.constrains('mahasiswa_id')
     def _check_unique_mahasiswa(self):
         for record in self:
-            # Cari apakah ada transkrip lain dengan mahasiswa yang sama, selain record ini
             duplicate = self.search([
                 ('mahasiswa_id', '=', record.mahasiswa_id.id),
                 ('id', '!=', record.id)
@@ -125,8 +115,8 @@ class CampusTranskrip(models.Model):
                     "Hanya boleh ada 1 transkrip per mahasiswa."
                 )
 
-
-# Override method
+    # Override method
+    # transkrip yang "approved" tidak bisa di edit
     def write(self, vals):
         for record in self:
             editing_other = set(vals) - {'state'}
@@ -136,6 +126,7 @@ class CampusTranskrip(models.Model):
                 )
         return super().write(vals)
 
+    # transkrip yang "approved" tidak bisa di delete
     def unlink(self):
         for record in self:
             if record.state == 'approved':
@@ -145,7 +136,7 @@ class CampusTranskrip(models.Model):
         return super().unlink()
 
 
-# Workflow
+    # Workflow (Draft -> Submitted -> Approved)
     def action_submit(self):
         for record in self:
             if not record.nilai_ids:
@@ -160,8 +151,8 @@ class CampusTranskrip(models.Model):
     def action_reset(self):
         self.write({'state': 'draft'})
 
+    # mengambil MK di KRS yang approved
     def action_sync_krs(self):
-        """Menarik mata kuliah baru dari KRS tanpa menghapus nilai yang sudah ada."""
         for record in self:
             if record.state == 'approved':
                 raise ValidationError("Transkrip yang sudah Lulus tidak bisa ditarik datanya lagi!")
@@ -169,13 +160,14 @@ class CampusTranskrip(models.Model):
             if not record.mahasiswa_id:
                 raise ValidationError("Pilih mahasiswa terlebih dahulu!")
 
-            # Cari semua KRS yang sudah diproses
+            # cari semua KRS yang sudah diproses
             krs_lines = self.env['campus.krs.line'].search([
                 ('krs_id.mahasiswa_id', '=', record.mahasiswa_id.id),
                 ('krs_id.state', '=', 'processed'),
                 ('state', '=', 'approved')
             ])
 
+            # agar MK lama tidak terhapus
             existing_course_ids = record.nilai_ids.mapped('mata_kuliah_id.id')
 
             command_list = []
@@ -202,9 +194,9 @@ class CampusTranskrip(models.Model):
                     }
                 }
 
+    # fetch data KRS ketika memilih mahasiswa
     @api.onchange('mahasiswa_id')
     def _onchange_mahasiswa_id_fetch_courses(self):
-        """Automatically fetch courses from processed KRS when a student is selected."""
         if not self.mahasiswa_id:
             self.nilai_ids = [(5, 0, 0)]
             return
@@ -251,13 +243,14 @@ class CampusTranskripNilai(models.Model):
         string='Nilai', compute='_compute_nilai_huruf', store=True,
     )
     bobot = fields.Float(string='Bobot', compute='_compute_nilai_huruf', store=True)
+
     nilai_mutu = fields.Float(
         string='Nilai Mutu', compute='_compute_mutu', store=True,
     )
+
     is_lulus = fields.Boolean(
         string='Lulus MK', compute='_compute_nilai_huruf', store=True,
     )
-
     _nilai_range = models.Constraint(
         'CHECK(nilai_angka >= 0 AND nilai_angka <= 100)',
         'Nilai angka harus berada di rentang 0 - 100!')
@@ -273,7 +266,7 @@ class CampusTranskripNilai(models.Model):
         for record in self:
             huruf = angka_ke_huruf(record.nilai_angka)
             record.nilai_huruf = huruf
-            record.bobot = NILAI_BOBOT.get(huruf, 0.0)
+            record.bobot = nilai_bobot.get(huruf, 0.0)
             record.is_lulus = huruf != 'E'
 
     @api.depends('bobot', 'sks')
@@ -281,7 +274,7 @@ class CampusTranskripNilai(models.Model):
         for record in self:
             record.nilai_mutu = record.bobot * record.sks
 
-    # onchange: kasih peringatan jika nilai tidak lulus (E)
+    # onchange: peringatan jika nilai tidak lulus (E)
     @api.onchange('nilai_angka')
     def _onchange_nilai_angka(self):
         if self.nilai_angka and self.nilai_angka < 50:
