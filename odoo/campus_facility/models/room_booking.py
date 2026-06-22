@@ -153,6 +153,18 @@ class CampusRoomBooking(models.Model):
                 }
             }
 
+    @api.onchange('tanggal_mulai', 'tanggal_selesai')
+    def _onchange_tanggal_validasi(self):
+        if self.tanggal_mulai and self.tanggal_selesai:
+            if self.tanggal_mulai >= self.tanggal_selesai:
+                # self.tanggal_selesai = False
+                return {
+                    'warning': {
+                        'title': 'Jadwal Tidak Valid',
+                        'message': 'Waktu Selesai harus setelah Waktu Mulai.'
+                    }
+                }
+
     # ------------------------------------------------------------------
     # Depends
     # ------------------------------------------------------------------

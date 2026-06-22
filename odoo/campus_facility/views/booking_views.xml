@@ -7,7 +7,7 @@
             <list string="Booking">
                 <field name="name"/>
                 <field name="facility_id"/>
-                <field name="mahasiswa_id"/>
+                <field name="peminjam_nama"/>
                 <field name="kuantitas_pinjam"/>
                 <field name="tanggal_mulai"/>
                 <field name="tanggal_selesai"/>
@@ -40,6 +40,9 @@
                     <group>
                         <group>
                             <field name="facility_id" readonly="state != 'draft'"/>
+
+                            <field name="kuantitas_tersedia" readonly="True" invisible="state != 'draft'"/>
+
                             <field name="kuantitas_pinjam" readonly="state != 'draft'"/>
                             <field name="keperluan" readonly="state != 'draft'"/>
                         </group>

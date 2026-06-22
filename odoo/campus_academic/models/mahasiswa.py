@@ -14,8 +14,7 @@ class CampusMahasiswa(models.Model):
     ipk = fields.Float(
         string='IPK', compute='_compute_ipk_total', store=True, digits=(3, 2)
     )
-    # Override field kelulusan dari campus_core agar dihitung otomatis
-    # dari transkrip yang sudah Approved.
+
     total_sks_lulus = fields.Integer(
         compute='_compute_sks_lulus', store=True, readonly=True,
     )
@@ -28,9 +27,7 @@ class CampusMahasiswa(models.Model):
     @api.depends('transkrip_ids.ipk')
     def _compute_ipk_total(self):
         for record in self:
-            # Karena 1 mahasiswa hanya memiliki 1 dokumen transkrip seumur hidup
             if record.transkrip_ids:
-                # Mengambil nilai IPK langsung dari dokumen transkripnya (Draft/Approved)
                 calculated_gpa = record.transkrip_ids[0].ipk
             else:
                 calculated_gpa = 0.0

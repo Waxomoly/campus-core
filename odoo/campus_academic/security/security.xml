@@ -5,15 +5,15 @@
         <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
     </record>
 
-    <record id="rule_transkrip_own" model="ir.rule">
-        <field name="name">Transkrip: user hanya melihat miliknya</field>
+    <record id="rule_transkrip_own_student" model="ir.rule">
+        <field name="name">Transkrip: Mahasiswa hanya melihat miliknya</field>
         <field name="model_id" ref="model_campus_transkrip"/>
-        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
-        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('campus_core.group_campus_student'))]"/>
+        <field name="domain_force">[('mahasiswa_id.user_id', '=', user.id)]</field>
     </record>
 
     <record id="rule_transkrip_manager" model="ir.rule">
-        <field name="name">Transkrip: manager melihat semua</field>
+        <field name="name">Transkrip: Manager melihat semua</field>
         <field name="model_id" ref="model_campus_transkrip"/>
         <field name="groups" eval="[(4, ref('group_academic_manager'))]"/>
         <field name="domain_force">[(1, '=', 1)]</field>
