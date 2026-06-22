@@ -36,7 +36,7 @@
                         <group string="Mata Kuliah">
                             <field name="mata_kuliah_id"/>
                             <field name="sks"/>
-                           <field name="dosen_id" domain="[('id', 'in', mata_kuliah_id.dosen_ids)]" invisible="not mata_kuliah_id"/>
+                           <field name="dosen_id"/>
                             <field name="semester" placeholder="Semester Gasal 2025/2026"/>
                         </group>
                         <group string="Jadwal">

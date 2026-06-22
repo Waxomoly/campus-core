@@ -23,6 +23,7 @@ class CampusKRS(models.Model):
     )
     semester = fields.Char(
         string='Semester', required=True,
+        default=lambda self: self._default_semester(),
         help='Contoh: Semester Gasal 2025/2026',
     )
     line_ids = fields.One2many(
@@ -43,6 +44,23 @@ class CampusKRS(models.Model):
         ('processed', 'Processed'),
     ], string='Status KRS', default='draft', required=True,
         readonly=True, copy=False)
+
+    # ------------------------------------------------------------------
+    # Default
+    # ------------------------------------------------------------------
+    @api.model
+    def _default_semester(self):
+        """Semester berjalan, ter-generate otomatis dari tanggal hari ini.
+
+        Format konsisten dengan Semester Aktif Mahasiswa,
+        mis. 'Semester Genap 2025/2026'.
+        """
+        today = fields.Date.context_today(self)
+        if today.month >= 8:
+            return "Semester Gasal %d/%d" % (today.year, today.year + 1)
+        if today.month == 1:
+            return "Semester Gasal %d/%d" % (today.year - 1, today.year)
+        return "Semester Genap %d/%d" % (today.year - 1, today.year)
 
     # ------------------------------------------------------------------
     # Compute
@@ -69,23 +87,8 @@ class CampusKRS(models.Model):
 
     @staticmethod
     def _is_kelas_eligible(kelas, mahasiswa):
-        mk = kelas.mata_kuliah_id
-
-        # Fakultas
-        if mk.fakultas_ids:
-            if mahasiswa.fakultas_id not in mk.fakultas_ids:
-                return False
-
-        # Prodi
-        if mk.prodi_ids:
-            if mahasiswa.prodi_id not in mk.prodi_ids:
-                return False
-
-        # Jurusan
-        if mk.jurusan_ids:
-            if mahasiswa.jurusan_id not in mk.jurusan_ids:
-                return False
-
+        # Semua kelas/mata kuliah terbuka untuk semua mahasiswa,
+        # tanpa memandang Fakultas/Prodi/Jurusan.
         return True
 
     @api.depends('mahasiswa_id.nim', 'semester')

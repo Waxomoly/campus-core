@@ -58,7 +58,7 @@
                         <page string="Mata Kuliah Terpilih" name="mata_kuliah">
                             <field name="line_ids" readonly="state != 'draft'">
                                 <list editable="bottom">
-                                    <field name="kelas_id" domain="[('id', 'in', parent.allowed_kelas_ids)]"/>
+                                    <field name="kelas_id"/>
                                     <field name="mata_kuliah_id"/>
                                     <field name="sks"/>
                                     <field name="dosen_id"/>

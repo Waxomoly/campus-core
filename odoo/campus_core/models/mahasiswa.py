@@ -37,7 +37,7 @@ class CampusMahasiswa(models.Model):
     )
     semester_aktif = fields.Selection(
         selection='_get_semester_aktif_selection', string='Semester Aktif',
-        default='Semester Genap 2026/2027',
+        default=lambda self: self._default_semester_aktif(),
         help='Periode semester berjalan, mis. Semester Gasal 2025/2026.',
     )
     ipk = fields.Float(string='IPK', digits=(3, 2))
@@ -133,6 +133,16 @@ class CampusMahasiswa(models.Model):
                 "Semester Genap %s" % tahun_ajaran,
             ))
         return opsi
+
+    @api.model
+    def _default_semester_aktif(self):
+        """Semester aktif berjalan, ter-generate otomatis dari tanggal hari ini."""
+        today = date.today()
+        if today.month >= 8:
+            return "Semester Gasal %d/%d" % (today.year, today.year + 1)
+        if today.month == 1:
+            return "Semester Gasal %d/%d" % (today.year - 1, today.year)
+        return "Semester Genap %d/%d" % (today.year - 1, today.year)
 
     @api.onchange('fakultas_id')
     def _onchange_fakultas_id(self):
