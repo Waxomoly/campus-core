@@ -214,6 +214,42 @@ class CampusTranskrip(models.Model):
                     }
                 }
 
+    @api.onchange('mahasiswa_id')
+    def _onchange_mahasiswa_id_fetch_courses(self):
+        """Automatically fetch courses from processed KRS when a student is selected."""
+        if not self.mahasiswa_id:
+            # Clear the lines if no student is selected
+            self.nilai_ids = [(5, 0, 0)]
+            return
+
+        # Fetch all approved KRS lines for the selected student
+        krs_lines = self.env['campus.krs.line'].search([
+            ('krs_id.mahasiswa_id', '=', self.mahasiswa_id.id),
+            ('krs_id.state', '=', 'processed'),
+            ('state', '=', 'approved')
+        ])
+
+        # Use a dictionary to filter out duplicate courses
+        # (in case the student retook a course in a different semester)
+        unique_courses = {}
+        for line in krs_lines:
+            course_id = line.mata_kuliah_id.id
+            if course_id not in unique_courses:
+                unique_courses[course_id] = {
+                    'mata_kuliah_id': course_id,
+                    'nilai_angka': 0.0,
+                }
+
+        # Prepare ORM commands to update the One2many field
+        # (5, 0, 0) removes all existing records in the relation
+        # (0, 0, values) creates a new record in the relation
+        command_list = [(5, 0, 0)]
+        for vals in unique_courses.values():
+            command_list.append((0, 0, vals))
+
+        # Apply the commands to the field
+        self.nilai_ids = command_list
+
 class CampusTranskripNilai(models.Model):
     _name = 'campus.transkrip.nilai'
     _description = 'Detail Nilai Transkrip'
@@ -278,38 +314,3 @@ class CampusTranskripNilai(models.Model):
                 }
             }
 
-    @api.onchange('mahasiswa_id')
-    def _onchange_mahasiswa_id_fetch_courses(self):
-        """Automatically fetch courses from processed KRS when a student is selected."""
-        if not self.mahasiswa_id:
-            # Clear the lines if no student is selected
-            self.nilai_ids = [(5, 0, 0)]
-            return
-
-        # Fetch all approved KRS lines for the selected student
-        krs_lines = self.env['campus.krs.line'].search([
-            ('krs_id.mahasiswa_id', '=', self.mahasiswa_id.id),
-            ('krs_id.state', '=', 'processed'),
-            ('state', '=', 'approved')
-        ])
-
-        # Use a dictionary to filter out duplicate courses
-        # (in case the student retook a course in a different semester)
-        unique_courses = {}
-        for line in krs_lines:
-            course_id = line.mata_kuliah_id.id
-            if course_id not in unique_courses:
-                unique_courses[course_id] = {
-                    'mata_kuliah_id': course_id,
-                    'nilai_angka': 0.0,
-                }
-
-        # Prepare ORM commands to update the One2many field
-        # (5, 0, 0) removes all existing records in the relation
-        # (0, 0, values) creates a new record in the relation
-        command_list = [(5, 0, 0)]
-        for vals in unique_courses.values():
-            command_list.append((0, 0, vals))
-
-        # Apply the commands to the field
-        self.nilai_ids = command_list

@@ -11,7 +11,6 @@ class CampusMahasiswa(models.Model):
         string='Jumlah Transkrip', compute='_compute_transkrip_count',
     )
 
-    # Perbaikan: store true
     ipk = fields.Float(
         string='IPK', compute='_compute_ipk_total', store=True, digits=(3, 2)
     )
@@ -26,7 +25,6 @@ class CampusMahasiswa(models.Model):
         for record in self:
             record.transkrip_count = len(record.transkrip_ids)
 
-    # PERBAIKAN
     @api.depends('transkrip_ids.ipk')
     def _compute_ipk_total(self):
         for record in self:
@@ -53,7 +51,6 @@ class CampusMahasiswa(models.Model):
                 total += sum(transkrip.nilai_ids.filtered('is_lulus').mapped('sks'))
             record.total_sks_lulus = total
 
-            # Perbaikan
             if total >= 144 and record.ipk >= 2.0:
                 record.status_kelulusan = 'lulus'
             else:

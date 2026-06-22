@@ -22,7 +22,7 @@
                             <p><strong>NIM:</strong> <span t-field="doc.mahasiswa_id.nim"/></p>
                         </div>
                         <div class="col-6">
-                            <p><strong>Semester:</strong> <span t-field="doc.semester"/></p>
+                            <p><strong>Fakultas:</strong> <span t-field="doc.mahasiswa_id.fakultas_id"/></p>
                             <p><strong>Prodi:</strong> <span t-field="doc.mahasiswa_id.prodi_id"/></p>
                             <p><strong>Jurusan:</strong> <span t-field="doc.mahasiswa_id.jurusan_id"/></p>
                             <p><strong>Status:</strong> <span t-field="doc.status_kelulusan"/></p>

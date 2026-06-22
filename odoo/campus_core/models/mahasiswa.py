@@ -37,6 +37,7 @@ class CampusMahasiswa(models.Model):
     )
     semester_aktif = fields.Selection(
         selection='_get_semester_aktif_selection', string='Semester Aktif',
+        default='Semester Genap 2026/2027',
         help='Periode semester berjalan, mis. Semester Gasal 2025/2026.',
     )
     ipk = fields.Float(string='IPK', digits=(3, 2))
