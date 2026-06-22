@@ -1,6 +1,6 @@
 from odoo import models, fields, api
 
-# Ambang batas minimal kehadiran (%)
+# batas minimal kehadiran (%)
 BATAS_KEHADIRAN = 75.0
 
 

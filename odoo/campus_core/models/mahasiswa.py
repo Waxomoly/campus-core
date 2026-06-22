@@ -3,9 +3,9 @@ from datetime import date
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
 
-# Rentang tahun untuk dropdown angkatan & semester aktif
-TAHUN_AWAL_ANGKATAN = 2015
-TAHUN_AWAL_SEMESTER = 2024
+# range tahun untuk dropdown angkatan & semester aktif
+tahun_awal_angkatan = 2015
+tahun_awal_semester = 2024
 
 
 class CampusMahasiswa(models.Model):
@@ -18,10 +18,9 @@ class CampusMahasiswa(models.Model):
     name = fields.Char(string='Nama Mahasiswa', required=True)
     email = fields.Char(string='Email', required=True, copy=False)
 
-    # Field untuk mengaitkan Mahasiswa dengan Akun Loginnya
+    # Field untuk mengaitkan mahasiswa dengan akun login
     user_id = fields.Many2one('res.users', string='User Account', readonly=True, copy=False)
 
-    # ---- Data pribadi ----
     tempat_lahir = fields.Char(string='Tempat Lahir')
     tanggal_lahir = fields.Date(string='Tanggal Lahir')
     jenis_kelamin = fields.Selection([
@@ -30,7 +29,6 @@ class CampusMahasiswa(models.Model):
     ], string='Jenis Kelamin')
     alamat = fields.Text(string='Alamat')
 
-    # ---- Data akademik ----
     angkatan = fields.Selection(
         selection='_get_angkatan_selection', string='Angkatan',
         help='Tahun masuk mahasiswa.',
@@ -64,7 +62,6 @@ class CampusMahasiswa(models.Model):
         ('cuti', 'Cuti'),
     ], string='Status', default='aktif', required=True)
 
-    # ---- Kelulusan ----
     total_sks_lulus = fields.Integer(
         string='Total SKS Lulus', default=0,
         help='Total SKS yang sudah diselesaikan (lulus). '
@@ -75,62 +72,51 @@ class CampusMahasiswa(models.Model):
         ('lulus', 'Lulus'),
     ], string='Status Kelulusan', default='belum', required=True)
 
-    _nim_unique = models.Constraint('unique(nim)', 'NIM sudah terdaftar!')
+    _sql_constraints = [
+        ('nim_unique', 'unique(nim)', 'NIM sudah terdaftar! Sistem tidak mengizinkan duplikasi NIM.'),
+        ('email_unique', 'unique(email)',
+         'Email ini sudah digunakan oleh mahasiswa lain! Silakan gunakan email yang berbeda.')
+    ]
 
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-            # 1. Pastikan email diisi karena akan digunakan sebagai username (login)
             if not vals.get('email'):
                 raise ValidationError("Email wajib diisi untuk membuat akun login!")
 
-            # 2. Cek apakah user_id belum terisi secara manual
             if not vals.get('user_id'):
-                # Persiapkan data untuk pembuatan akun di res.users
                 user_vals = {
                     'name': vals.get('name'),
-                    'login': vals.get('email'),  # Email dijadikan username login
+                    'login': vals.get('email'),
                     'email': vals.get('email'),
-
-                    # OPSIONAL: Otomatis memasukkan user ke group tertentu
-                    # 'groups_id': [(4, self.env.ref('base.group_portal').id)] # Contoh: jadikan portal user
                 }
-
-                # 3. Buat akun res.users secara otomatis
-                # context {'no_reset_password': True} mencegah kirim email reset jika belum dikonfigurasi
                 new_user = self.env['res.users'].with_context(no_reset_password=True).create(user_vals)
 
-                # 4. Masukkan ID user baru tersebut ke dalam data mahasiswa yang sedang dibuat
                 vals['user_id'] = new_user.id
 
-        # 5. Jalankan fungsi create bawaan Odoo untuk menyimpan data mahasiswa
         return super(CampusMahasiswa, self).create(vals_list)
 
-
-    # ------------------------------------------------------------------
-    # Pilihan dropdown dinamis (tahun ter-generate otomatis)
-    # ------------------------------------------------------------------
     @api.model
     def _get_angkatan_selection(self):
         tahun_sekarang = date.today().year
         return [
             (str(tahun), str(tahun))
-            for tahun in range(TAHUN_AWAL_ANGKATAN, tahun_sekarang + 2)
+            for tahun in range(tahun_awal_angkatan, tahun_sekarang + 2)
         ]
 
     @api.model
     def _get_semester_aktif_selection(self):
         tahun_sekarang = date.today().year
         opsi = []
-        for tahun in range(TAHUN_AWAL_SEMESTER, tahun_sekarang + 3):
+        for tahun in range(tahun_awal_semester, tahun_sekarang + 3):
             tahun_ajaran = "%d/%d" % (tahun, tahun + 1)
             opsi.append((
-                "Semester Gasal %s" % tahun_ajaran,
-                "Semester Gasal %s" % tahun_ajaran,
+                "Gasal %s" % tahun_ajaran,
+                "Gasal %s" % tahun_ajaran,
             ))
             opsi.append((
-                "Semester Genap %s" % tahun_ajaran,
-                "Semester Genap %s" % tahun_ajaran,
+                "Genap %s" % tahun_ajaran,
+                "Genap %s" % tahun_ajaran,
             ))
         return opsi
 
@@ -139,10 +125,11 @@ class CampusMahasiswa(models.Model):
         """Semester aktif berjalan, ter-generate otomatis dari tanggal hari ini."""
         today = date.today()
         if today.month >= 8:
-            return "Semester Gasal %d/%d" % (today.year, today.year + 1)
+            return "Gasal %d/%d" % (today.year, today.year + 1)
         if today.month == 1:
-            return "Semester Gasal %d/%d" % (today.year - 1, today.year)
-        return "Semester Genap %d/%d" % (today.year - 1, today.year)
+            return "Gasal %d/%d" % (today.year - 1, today.year)
+        # Genap 2025/2026
+        return "Genap %d/%d" % (today.year - 1, today.year)
 
     @api.onchange('fakultas_id')
     def _onchange_fakultas_id(self):

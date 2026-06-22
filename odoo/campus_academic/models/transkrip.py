@@ -1,7 +1,6 @@
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
 
-# Bobot nilai huruf untuk perhitungan IPK (skala lengkap)
 NILAI_BOBOT = {
     'A': 4.0,
     'B+': 3.5,
@@ -78,14 +77,10 @@ class CampusTranskrip(models.Model):
         'Mahasiswa ini sudah memiliki dokumen transkrip! Silakan update dokumen yang sudah ada.',
     )
 
-    # ------------------------------------------------------------------
-    # Compute
-    # ------------------------------------------------------------------
     @api.depends('mahasiswa_id.nim')
     def _compute_name(self):
         for record in self:
             if record.mahasiswa_id:
-                # Karena semester dihapus, format nama diubah
                 record.name = "TR/%s" % (record.mahasiswa_id.nim)
             else:
                 record.name = 'Draft'
@@ -105,9 +100,8 @@ class CampusTranskrip(models.Model):
             lulus = record.ipk >= IPK_MINIMAL and record.total_sks >= SKS_LULUS
             record.status_kelulusan = 'lulus' if lulus else 'belum'
 
-    # ------------------------------------------------------------------
-    # Constraint
-    # ------------------------------------------------------------------
+
+  # Constrains
     @api.constrains('nilai_ids')
     def _check_duplicate_mk(self):
         for record in self:
@@ -131,9 +125,8 @@ class CampusTranskrip(models.Model):
                     "Hanya boleh ada 1 transkrip per mahasiswa."
                 )
 
-    # ------------------------------------------------------------------
-    # Override method (write & unlink) -> pakai super()
-    # ------------------------------------------------------------------
+
+# Override method
     def write(self, vals):
         for record in self:
             editing_other = set(vals) - {'state'}
@@ -151,9 +144,8 @@ class CampusTranskrip(models.Model):
                 )
         return super().unlink()
 
-    # ------------------------------------------------------------------
-    # Workflow
-    # ------------------------------------------------------------------
+
+# Workflow
     def action_submit(self):
         for record in self:
             if not record.nilai_ids:
@@ -184,25 +176,21 @@ class CampusTranskrip(models.Model):
                 ('state', '=', 'approved')
             ])
 
-            # Dapatkan ID mata kuliah yang SUDAH ADA di tabel transkrip saat ini
             existing_course_ids = record.nilai_ids.mapped('mata_kuliah_id.id')
 
             command_list = []
             for line in krs_lines:
                 course_id = line.mata_kuliah_id.id
-                # Jika mata kuliah belum ada di transkrip, tambahkan baris baru
                 if course_id not in existing_course_ids:
                     command_list.append((0, 0, {
                         'mata_kuliah_id': course_id,
                         'nilai_angka': 0.0,
                     }))
-                    # Tambahkan ke daftar agar tidak terduplikat di loop ini
                     existing_course_ids.append(course_id)
 
             if command_list:
                 record.write({'nilai_ids': command_list})
             else:
-                # Menampilkan notifikasi kecil jika tidak ada data baru
                 return {
                     'type': 'ir.actions.client',
                     'tag': 'display_notification',
@@ -218,19 +206,15 @@ class CampusTranskrip(models.Model):
     def _onchange_mahasiswa_id_fetch_courses(self):
         """Automatically fetch courses from processed KRS when a student is selected."""
         if not self.mahasiswa_id:
-            # Clear the lines if no student is selected
             self.nilai_ids = [(5, 0, 0)]
             return
 
-        # Fetch all approved KRS lines for the selected student
         krs_lines = self.env['campus.krs.line'].search([
             ('krs_id.mahasiswa_id', '=', self.mahasiswa_id.id),
             ('krs_id.state', '=', 'processed'),
             ('state', '=', 'approved')
         ])
 
-        # Use a dictionary to filter out duplicate courses
-        # (in case the student retook a course in a different semester)
         unique_courses = {}
         for line in krs_lines:
             course_id = line.mata_kuliah_id.id
@@ -240,14 +224,10 @@ class CampusTranskrip(models.Model):
                     'nilai_angka': 0.0,
                 }
 
-        # Prepare ORM commands to update the One2many field
-        # (5, 0, 0) removes all existing records in the relation
-        # (0, 0, values) creates a new record in the relation
         command_list = [(5, 0, 0)]
         for vals in unique_courses.values():
             command_list.append((0, 0, vals))
 
-        # Apply the commands to the field
         self.nilai_ids = command_list
 
 class CampusTranskripNilai(models.Model):
@@ -265,9 +245,8 @@ class CampusTranskripNilai(models.Model):
     sks = fields.Integer(
         string='SKS', related='mata_kuliah_id.sks', store=True, readonly=True,
     )
-    # Input nilai menggunakan angka 0-100
     nilai_angka = fields.Float(string='Nilai Angka', default=0.0, required=True)
-    # Nilai huruf & bobot dikonversi otomatis dari nilai angka
+
     nilai_huruf = fields.Char(
         string='Nilai', compute='_compute_nilai_huruf', store=True,
     )
