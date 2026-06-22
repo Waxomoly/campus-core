@@ -41,6 +41,10 @@ class CampusFacilityBooking(models.Model):
 
     kuantitas_pinjam = fields.Integer(string='Jumlah Dipinjam', default=1, required=True)
 
+    kuantitas_tersedia = fields.Integer(
+        string='Sisa Tersedia', compute='_compute_kuantitas_tersedia'
+    )
+
     created_by_id = fields.Many2one('res.users', string='Dibuat Oleh', readonly=True,
                                     default=lambda self: self.env.user)
     status_changed_by_id = fields.Many2one('res.users', string='Status Diubah Oleh', readonly=True)
@@ -64,6 +68,45 @@ class CampusFacilityBooking(models.Model):
                 record.peminjam_nama = record.dosen_id.name
             else:
                 record.peminjam_nama = "-"
+
+    @api.depends('facility_id', 'tanggal_mulai', 'tanggal_selesai')
+    def _compute_kuantitas_tersedia(self):
+        for record in self:
+            if (not record.facility_id) or (not record.tanggal_mulai or not record.tanggal_selesai):
+                # Jika fasilitas kosong, default ke 0
+                record.kuantitas_tersedia = 0
+            else:
+                # Jika semua terisi, hitung yang bertabrakan (overlap)
+                domain = [
+                    ('facility_id', '=', record.facility_id.id),
+                    ('state', 'in', ['submitted', 'approved']),
+                    ('tanggal_mulai', '<', record.tanggal_selesai),
+                    ('tanggal_selesai', '>', record.tanggal_mulai),
+                ]
+
+                # Hindari menghitung diri sendiri saat sedang di-edit
+                if record._origin.id:
+                    domain.append(('id', '!=', record._origin.id))
+
+                overlapping_bookings = self.env['campus.facility.booking'].search(domain)
+                total_dipinjam = sum(overlapping_bookings.mapped('kuantitas_pinjam'))
+
+                # Kapasitas total dikurangi yang sedang dipinjam orang lain
+                record.kuantitas_tersedia = record.facility_id.kuantitas - total_dipinjam
+
+    # 3. Fungsi Onchange untuk Validasi Tanggal
+    @api.onchange('tanggal_mulai', 'tanggal_selesai')
+    def _onchange_tanggal_validasi(self):
+        if self.tanggal_mulai and self.tanggal_selesai:
+            if self.tanggal_mulai >= self.tanggal_selesai:
+                # Jika tidak masuk akal, reset input selesai dan lempar warning
+                # self.tanggal_selesai = False
+                return {
+                    'warning': {
+                        'title': 'Jadwal Tidak Valid',
+                        'message': 'Waktu Selesai harus lebih besar (setelah) Waktu Mulai.'
+                    }
+                }
 
 
     @api.model_create_multi
