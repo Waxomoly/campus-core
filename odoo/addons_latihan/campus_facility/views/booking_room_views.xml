@@ -7,7 +7,7 @@
             <list string="Booking">
                 <field name="name"/>
                 <field name="room_id"/>
-                <field name="mahasiswa_id"/>
+                <field name="peminjam_nama"/>
                 <field name="tanggal_mulai"/>
                 <field name="tanggal_selesai"/>
                 <field name="state" widget="badge"
@@ -26,9 +26,9 @@
             <form string="Booking Ruangan">
                 <header>
                     <button name="action_submit" string="Submit" type="object" class="oe_highlight" invisible="state != 'draft'"/>
-                    <button name="action_approve" string="Approve" type="object" class="oe_highlight" invisible="state != 'submitted'" groups="campus_facility.group_facility_manager"/>
-                    <button name="action_reject" string="Reject" type="object" class="btn-danger" invisible="state != 'submitted'" groups="campus_facility.group_facility_manager"/>
-                    <button name="action_reset" string="Set to Draft" type="object" invisible="state not in ('submitted', 'rejected')"/>
+                    <button name="action_approve" string="Approve" type="object" class="oe_highlight" invisible="state == 'draft' or state=='approved'" groups="campus_facility.group_facility_manager"/>
+                    <button name="action_reject" string="Reject" type="object" class="btn-danger" invisible="state == 'draft' or state=='rejected'" groups="campus_facility.group_facility_manager"/>
+                    <button name="action_reset" string="Set to Draft" type="object" invisible="state not in ('submitted', 'rejected') or created_by_id != uid"/>
                     <button name="%(action_report_room_booking)d" string="Cetak" invisible="state != 'approved'" type="action" class="btn-secondary"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,submitted,approved,rejected"/>
                 </header>
@@ -39,15 +39,38 @@
                     <group>
                         <group>
                             <field name="room_id" readonly="state != 'draft'"/>
-                            <field name="mahasiswa_id" readonly="state != 'draft'" domain="[('status', '=', 'aktif')]"/>
+
+                            <field name="jumlah_peserta" readonly="state != 'draft'"/>
+                            <field name="kapasitas"/>
+
                             <field name="keperluan" readonly="state != 'draft'"/>
                         </group>
                         <group>
+                            <field name="tipe_peminjam"
+                                   readonly="state != 'draft' or not is_facility_manager"
+                                   invisible="not is_facility_manager"
+                                   widget="radio" options="{'horizontal': true}"
+                                   force_save="1"/>
+
+                            <field name="mahasiswa_id"
+                                   string="Peminjam"
+                                   invisible="tipe_peminjam != 'mahasiswa'"
+                                   required="tipe_peminjam == 'mahasiswa' and is_facility_manager"
+                                   readonly="state != 'draft' or not is_facility_manager"
+                                   domain="[('status', '=', 'aktif')]"/>
+
+                            <field name="dosen_id"
+                                   string="Peminjam"
+                                   invisible="tipe_peminjam != 'dosen'"
+                                   required="tipe_peminjam == 'dosen' and is_facility_manager"
+                                   readonly="state != 'draft' or not is_facility_manager"/>
                             <field name="tanggal_mulai" readonly="state != 'draft'"/>
                             <field name="tanggal_selesai" readonly="state != 'draft'"/>
-                            <field name="jumlah_peserta" readonly="state != 'draft'"/>
-                            <field name="kapasitas"/>
                         </group>
+                    </group>
+                    <group string="Informasi Log">
+                        <field name="created_by_id" widget="many2one_avatar_user"/>
+                        <field name="status_changed_by_id" widget="many2one_avatar_user"/>
                     </group>
                 </sheet>
             </form>

@@ -7,6 +7,7 @@
             <list string="Daftar Mahasiswa">
                 <field name="nim"/>
                 <field name="name"/>
+                <field name="email"/>
                 <field name="jurusan_id"/>
                 <field name="angkatan"/>
                 <field name="semester_aktif"/>
@@ -35,6 +36,7 @@
                     <group>
                         <group string="Identitas">
                             <field name="nim"/>
+                            <field name="email"/>
                             <field name="tempat_lahir"/>
                             <field name="tanggal_lahir" options="{'datepicker': {'yearRange': 'c-60:c+0'}}"/>
                             <field name="jenis_kelamin"/>
@@ -68,6 +70,7 @@
             <search string="Cari Mahasiswa">
                 <field name="nim"/>
                 <field name="name"/>
+                <field name="email"/>
                 <field name="prodi_id"/>
                 <field name="jurusan_id"/>
                 <field name="fakultas_id"/>

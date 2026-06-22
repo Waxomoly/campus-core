@@ -9,11 +9,10 @@
                 <field name="name"/>
                 <field name="tipe_id"/>
 
-                <field name="sisa_saat_ini"/>
 
-                <field name="status_realtime" widget="badge"
-                       decoration-success="status_realtime == 'Tersedia'"
-                       decoration-danger="status_realtime == 'Maintenance'"/>
+                <field name="status" widget="badge"
+                       decoration-success="status == 'Tersedia'"
+                       decoration-danger="status == 'Maintenance'"/>
             </list>
         </field>
     </record>
@@ -49,11 +48,22 @@
                         <page string="Riwayat Booking" name="booking">
                             <field name="booking_ids" readonly="1">
                                 <list>
-                                    <field name="name"/>
-                                    <field name="mahasiswa_id"/>
+                                    <field name="name" groups="campus_facility.group_facility_manager"/>
+<!--                                    <field name="mahasiswa_id"-->
+<!--                                           string="Peminjam"-->
+<!--                                           groups="campus_facility.group_facility_manager"-->
+<!--                                           invisible="tipe_peminjam == 'dosen'"/>-->
+
+<!--                                    <field name="dosen_id"-->
+<!--                                           string="Peminjam"-->
+<!--                                           groups="campus_facility.group_facility_manager"-->
+<!--                                           invisible="tipe_peminjam == 'mahasiswa'"/>-->
+
+                                    <field name="peminjam_nama" string="Peminjam" groups="campus_facility.group_facility_manager"/>
+
                                     <field name="tanggal_mulai"/>
                                     <field name="tanggal_selesai"/>
-                                    <field name="state"/>
+                                    <field name="state" groups="campus_facility.group_facility_manager"/>
                                 </list>
                             </field>
                         </page>

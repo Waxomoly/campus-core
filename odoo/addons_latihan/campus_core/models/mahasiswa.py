@@ -16,6 +16,10 @@ class CampusMahasiswa(models.Model):
 
     nim = fields.Char(string='NIM', required=True, copy=False, index=True)
     name = fields.Char(string='Nama Mahasiswa', required=True)
+    email = fields.Char(string='Email', required=True, copy=False)
+
+    # Field untuk mengaitkan Mahasiswa dengan Akun Loginnya
+    user_id = fields.Many2one('res.users', string='User Account', readonly=True, copy=False)
 
     # ---- Data pribadi ----
     tempat_lahir = fields.Char(string='Tempat Lahir')
@@ -71,6 +75,36 @@ class CampusMahasiswa(models.Model):
     ], string='Status Kelulusan', default='belum', required=True)
 
     _nim_unique = models.Constraint('unique(nim)', 'NIM sudah terdaftar!')
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            # 1. Pastikan email diisi karena akan digunakan sebagai username (login)
+            if not vals.get('email'):
+                raise ValidationError("Email wajib diisi untuk membuat akun login!")
+
+            # 2. Cek apakah user_id belum terisi secara manual
+            if not vals.get('user_id'):
+                # Persiapkan data untuk pembuatan akun di res.users
+                user_vals = {
+                    'name': vals.get('name'),
+                    'login': vals.get('email'),  # Email dijadikan username login
+                    'email': vals.get('email'),
+
+                    # OPSIONAL: Otomatis memasukkan user ke group tertentu
+                    # 'groups_id': [(4, self.env.ref('base.group_portal').id)] # Contoh: jadikan portal user
+                }
+
+                # 3. Buat akun res.users secara otomatis
+                # context {'no_reset_password': True} mencegah kirim email reset jika belum dikonfigurasi
+                new_user = self.env['res.users'].with_context(no_reset_password=True).create(user_vals)
+
+                # 4. Masukkan ID user baru tersebut ke dalam data mahasiswa yang sedang dibuat
+                vals['user_id'] = new_user.id
+
+        # 5. Jalankan fungsi create bawaan Odoo untuk menyimpan data mahasiswa
+        return super(CampusMahasiswa, self).create(vals_list)
+
 
     # ------------------------------------------------------------------
     # Pilihan dropdown dinamis (tahun ter-generate otomatis)

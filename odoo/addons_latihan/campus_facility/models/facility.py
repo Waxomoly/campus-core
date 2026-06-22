@@ -30,7 +30,7 @@ class CampusFacility(models.Model):
         ('maintenance', 'Maintenance'),
     ], string='Kondisi', default='tersedia', required=True, readonly=True, copy=False)
 
-    status_realtime = fields.Char(string='Status', compute='_compute_ketersediaan_sekarang')
+    status = fields.Char(string='Status', compute='_compute_ketersediaan_sekarang')
 
     booking_ids = fields.One2many(
         'campus.facility.booking', 'facility_id', string='Daftar Booking',
@@ -107,7 +107,7 @@ class CampusFacility(models.Model):
 
         for record in self:
             if record.state == 'maintenance':
-                record.status_realtime = 'Maintenance'
+                record.status = 'Maintenance'
                 continue
 
-            record.status_realtime = 'Tersedia'
+            record.status = 'Tersedia'

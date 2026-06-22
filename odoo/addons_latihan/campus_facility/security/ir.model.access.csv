@@ -1,7 +1,7 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_campus_facility_user,access.campus.facility.user,model_campus_facility,base.group_user,1,0,0,0
 access_campus_facility_manager,access.campus.facility.manager,model_campus_facility,group_facility_manager,1,1,1,1
-access_campus_facility_booking_user,access.campus.facility.booking.user,model_campus_facility_booking,base.group_user,1,1,1,0
+access_campus_facility_booking_user,access.campus.facility.booking.user,model_campus_facility_booking,base.group_user,1,1,1,1
 access_campus_facility_booking_manager,access.campus.facility.booking.manager,model_campus_facility_booking,group_facility_manager,1,1,1,1
 access_campus_facility_type_user,access.campus.facility.type.user,model_campus_facility_type,base.group_user,1,0,0,0
 access_campus_facility_type_manager,access.campus.facility.type.manager,model_campus_facility_type,campus_facility.group_facility_manager,1,1,1,1
@@ -9,7 +9,7 @@ access_campus_facility_type_manager,access.campus.facility.type.manager,model_ca
 access_campus_room_user,access.campus.room.user,model_campus_room,base.group_user,1,0,0,0
 access_campus_room_manager,access.campus.room.manager,model_campus_room,campus_facility.group_facility_manager,1,1,1,1
 
-access_campus_room_booking_user,access.campus.room.booking.user,model_campus_room_booking,base.group_user,1,1,1,0
+access_campus_room_booking_user,access.campus.room.booking.user,model_campus_room_booking,base.group_user,1,1,1,1
 access_campus_room_booking_manager,access.campus.room.booking.manager,model_campus_room_booking,campus_facility.group_facility_manager,1,1,1,1
 
 access_campus_room_type_user,access.campus.room.type.user,model_campus_room_type,base.group_user,1,0,0,0

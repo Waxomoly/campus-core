@@ -7,6 +7,7 @@
             <list string="Daftar Dosen">
                 <field name="nip"/>
                 <field name="name"/>
+                <field name="email"/>
                 <field name="prodi_id"/>
                 <field name="jurusan_id"/>
                 <field name="fakultas_id"/>
@@ -26,6 +27,7 @@
                     <group>
                         <group>
                             <field name="nip"/>
+                            <field name="email"/>
                         </group>
                         <group>
                             <field name="fakultas_id" required="1"/>
@@ -46,6 +48,7 @@
             <search string="Cari Dosen">
                 <field name="nip"/>
                 <field name="name"/>
+                <field name="email"/>
                 <field name="prodi_id"/>
                 <field name="fakultas_id"/>
                 <group>

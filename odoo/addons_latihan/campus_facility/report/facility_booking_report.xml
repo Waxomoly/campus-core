@@ -6,8 +6,9 @@
         <field name="report_type">qweb-html</field>
         <field name="report_name">campus_facility.report_facility_booking_doc</field>
         <field name="report_file">campus_facility.report_facility_booking_doc</field>
-        <field name="binding_model_id" ref="campus_facility.model_campus_facility_booking"/>
-        <field name="binding_type">report</field>
+<!--        <field name="binding_model_id" ref="campus_facility.model_campus_facility_booking"/>-->
+<!--        <field name="binding_type">report</field>-->
+        <field name="binding_model_id" eval="False"/>
     </record>
 
     <template id="report_facility_booking_doc">
@@ -19,12 +20,26 @@
                         <table class="table table-sm table-bordered mt-4">
                             <tr><th style="width:30%">Nomor Booking</th><td><span t-field="doc.name"/></td></tr>
                             <tr><th>Fasilitas</th><td><span t-field="doc.facility_id.name"/></td></tr>
-                            <tr><th>Peminjam</th><td><span t-field="doc.mahasiswa_id.name"/> (<span t-field="doc.mahasiswa_id.nim"/>)</td></tr>
+                            <tr>
+                                <th>Peminjam</th>
+                                <td>
+                                    <t t-if="doc.tipe_peminjam == 'mahasiswa'">
+                                        <span t-field="doc.mahasiswa_id.name"/> (<span t-field="doc.mahasiswa_id.nim"/>)
+                                    </t>
+                                    <t t-elif="doc.tipe_peminjam == 'dosen'">
+                                        <span t-field="doc.dosen_id.name"/> (<span t-field="doc.dosen_id.nip"/>)
+                                    </t>
+                                </td>
+                            </tr>
                             <tr><th>Keperluan</th><td><span t-field="doc.keperluan"/></td></tr>
                             <tr><th>Tanggal Mulai</th><td><span t-field="doc.tanggal_mulai"/></td></tr>
                             <tr><th>Tanggal Selesai</th><td><span t-field="doc.tanggal_selesai"/></td></tr>
                             <tr><th>Jumlah Dipinjam</th><td><span t-field="doc.kuantitas_pinjam"/> Unit</td></tr>
                             <tr><th>Status</th><td><span t-field="doc.state"/></td></tr>
+                            <tr t-if="doc.state == 'approved' and doc.status_changed_by_id">
+                                <th>Disetujui Oleh</th>
+                                <td><span t-field="doc.status_changed_by_id.name"/></td>
+                            </tr>
                         </table>
                     </div>
                 </t>
