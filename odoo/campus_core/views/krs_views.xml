@@ -47,7 +47,7 @@
                             <field name="mahasiswa_id" readonly="state != 'draft'"/>
                             <field name="dosen_pembimbing_id" readonly="state == 'processed'"/>
                             <field name="semester" readonly="state != 'draft'"
-                                   placeholder="Contoh: Semester Gasal 2025/2026"/>
+                                   placeholder="Contoh: Genap 2025/2026"/>
                         </group>
                         <group>
                             <field name="total_sks"/>

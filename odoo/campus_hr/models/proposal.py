@@ -25,6 +25,7 @@ class CampusProposal(models.Model):
     )
     ketua_panitia_id = fields.Many2one(
         'campus.mahasiswa', string='Ketua Panitia', ondelete='restrict',
+        help='Default mengikuti Ketua Umum organisasi, namun boleh diganti.',
     )
     tanggal_kegiatan = fields.Date(string='Tanggal Kegiatan', required=True)
     anggaran = fields.Float(string='Anggaran (Rp)', default=0.0)
@@ -99,9 +100,12 @@ class CampusProposal(models.Model):
     # ------------------------------------------------------------------
     # Onchange
     # ------------------------------------------------------------------
+    # ------------------------------------------------------------------
+    # Onchange
+    # ------------------------------------------------------------------
     @api.onchange('organisasi_id')
     def _onchange_organisasi_id(self):
-        # default ketua panitia = ketua organisasi
+        # Default Ketua Panitia = Ketua Umum organisasi (tetap bisa diganti).
         if self.organisasi_id:
             self.ketua_panitia_id = self.organisasi_id.ketua_id
 
