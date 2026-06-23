@@ -1,10 +1,21 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_campus_fakultas,access.campus.fakultas,model_campus_fakultas,base.group_user,1,1,1,1
-access_campus_jurusan,access.campus.jurusan,model_campus_jurusan,base.group_user,1,1,1,1
-access_campus_prodi,access.campus.prodi,model_campus_prodi,base.group_user,1,1,1,1
-access_campus_mahasiswa,access.campus.mahasiswa,model_campus_mahasiswa,base.group_user,1,1,1,1
-access_campus_dosen,access.campus.dosen,model_campus_dosen,base.group_user,1,1,1,1
-access_campus_mata_kuliah,access.campus.mata_kuliah,model_campus_mata_kuliah,base.group_user,1,1,1,1
-access_campus_kelas,access.campus.kelas,model_campus_kelas,base.group_user,1,1,1,1
-access_campus_krs,access.campus.krs,model_campus_krs,base.group_user,1,1,1,1
-access_campus_krs_line,access.campus.krs.line,model_campus_krs_line,base.group_user,1,1,1,1
+access_fakultas_manager,fakultas manager,model_campus_fakultas,campus_core.group_academic_manager,1,1,1,1
+access_jurusan_manager,jurusan manager,model_campus_jurusan,campus_core.group_academic_manager,1,1,1,1
+access_prodi_manager,prodi manager,model_campus_prodi,campus_core.group_academic_manager,1,1,1,1
+access_mahasiswa_manager,mahasiswa manager,model_campus_mahasiswa,campus_core.group_academic_manager,1,1,1,1
+access_dosen_manager,dosen manager,model_campus_dosen,campus_core.group_academic_manager,1,1,1,1
+access_mk_manager,mk manager,model_campus_mata_kuliah,campus_core.group_academic_manager,1,1,1,1
+access_kelas_manager,kelas manager,model_campus_kelas,campus_core.group_academic_manager,1,1,1,1
+access_krs_manager,krs manager,model_campus_krs,campus_core.group_academic_manager,1,1,1,1
+access_krs_line_manager,krs line manager,model_campus_krs_line,campus_core.group_academic_manager,1,1,1,1
+
+access_fakultas_student,fakultas student,model_campus_fakultas,base.group_user,1,0,0,0
+access_jurusan_student,jurusan student,model_campus_jurusan,base.group_user,1,0,0,0
+access_prodi_student,prodi student,model_campus_prodi,base.group_user,1,0,0,0
+access_mahasiswa_student,mahasiswa student,model_campus_mahasiswa,base.group_user,1,0,0,0
+access_dosen_student,dosen student,model_campus_dosen,base.group_user,1,0,0,0
+access_mk_student,mk student,model_campus_mata_kuliah,base.group_user,1,0,0,0
+access_kelas_student,kelas student,model_campus_kelas,base.group_user,1,0,0,0
+
+access_krs_student,krs student,model_campus_krs,campus_core.group_campus_student,1,1,1,0
+access_krs_line_student,krs line student,model_campus_krs_line,campus_core.group_campus_student,1,1,1,0

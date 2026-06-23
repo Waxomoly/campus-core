@@ -1,5 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_campus_transkrip_student,access.campus.transkrip.student,model_campus_transkrip,campus_core.group_campus_student,1,0,0,0
-access_campus_transkrip_manager,access.campus.transkrip.manager,model_campus_transkrip,group_academic_manager,1,1,1,1
+access_campus_transkrip_manager,access.campus.transkrip.manager,model_campus_transkrip,campus_core.group_academic_manager,1,1,1,1
 access_campus_transkrip_nilai_student,access.campus.transkrip.nilai.student,model_campus_transkrip_nilai,campus_core.group_campus_student,1,0,0,0
-access_campus_transkrip_nilai_manager,access.campus.transkrip.nilai.manager,model_campus_transkrip_nilai,group_academic_manager,1,1,1,1
+access_campus_transkrip_nilai_manager,access.campus.transkrip.nilai.manager,model_campus_transkrip_nilai,campus_core.group_academic_manager,1,1,1,1

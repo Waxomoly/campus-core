@@ -94,5 +94,6 @@
         <field name="view_mode">list,form</field>
     </record>
 
-    <menuitem id="menu_campus_mahasiswa" name="Mahasiswa" parent="menu_campus_master" action="action_campus_mahasiswa" sequence="10"/>
+    <menuitem id="menu_campus_mahasiswa" name="Mahasiswa" parent="menu_campus_master" action="action_campus_mahasiswa" sequence="10"
+          groups="campus_core.group_campus_lecturer,campus_core.group_academic_manager"/>
 </odoo>
