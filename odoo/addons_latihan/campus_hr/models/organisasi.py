@@ -47,6 +47,29 @@ class CampusOrganisasi(models.Model):
 
     _kode_unique = models.Constraint('unique(kode)', 'Kode organisasi sudah ada!')
 
+    @api.constrains('ketua_id')
+    def _check_ketua_single_organisasi(self):
+        """Ketua Umum tidak boleh sudah tergabung di organisasi lain
+        (baik sebagai ketua maupun anggota)."""
+        for record in self:
+            mhs = record.ketua_id
+            if not mhs:
+                continue
+            ketua_lain = self.search_count([
+                ('id', '!=', record.id),
+                ('ketua_id', '=', mhs.id),
+            ])
+            anggota_lain = self.env['campus.organisasi.anggota'].search_count([
+                ('mahasiswa_id', '=', mhs.id),
+                ('organisasi_id', '!=', record.id),
+            ])
+            if ketua_lain or anggota_lain:
+                raise ValidationError(
+                    "%s sudah tergabung dalam organisasi lain. "
+                    "Satu mahasiswa hanya boleh tergabung dalam 1 organisasi."
+                    % mhs.name
+                )
+
     @api.depends('anggota_ids')
     def _compute_jumlah_anggota(self):
         for record in self:
@@ -99,14 +122,31 @@ class CampusOrganisasiAnggota(models.Model):
     )
 
     @api.constrains('mahasiswa_id', 'organisasi_id')
-    def _check_duplicate_member(self):
+    def _check_single_organisasi(self):
+        """Satu mahasiswa hanya boleh tergabung dalam 1 organisasi, dan
+        tidak boleh memegang lebih dari satu posisi (termasuk Ketua Umum)."""
         for record in self:
-            duplikat = self.search_count([
+            mhs = record.mahasiswa_id
+            if not mhs:
+                continue
+            # Sudah jadi anggota (di organisasi manapun, termasuk baris lain di sini)
+            anggota_lain = self.search_count([
                 ('id', '!=', record.id),
-                ('organisasi_id', '=', record.organisasi_id.id),
-                ('mahasiswa_id', '=', record.mahasiswa_id.id),
+                ('mahasiswa_id', '=', mhs.id),
             ])
-            if duplikat:
+            if anggota_lain:
                 raise ValidationError(
-                    "Mahasiswa sudah terdaftar sebagai anggota organisasi ini!"
+                    "%s sudah terdaftar di organisasi lain. "
+                    "Satu mahasiswa hanya boleh tergabung dalam 1 organisasi."
+                    % mhs.name
+                )
+            # Sudah jadi Ketua Umum di organisasi manapun
+            sbg_ketua = self.env['campus.organisasi'].search_count([
+                ('ketua_id', '=', mhs.id),
+            ])
+            if sbg_ketua:
+                raise ValidationError(
+                    "%s sudah menjadi Ketua Umum sebuah organisasi, "
+                    "tidak boleh merangkap posisi lain."
+                    % mhs.name
                 )

@@ -4,7 +4,7 @@
         <field name="name">campus.kelas.list</field>
         <field name="model">campus.kelas</field>
         <field name="arch" type="xml">
-            <list string="Daftar Kelas">
+            <list string="Daftar Kelas" create="false">
                 <field name="mata_kuliah_id"/>
                 <field name="name"/>
                 <field name="semester"/>
@@ -27,7 +27,7 @@
         <field name="name">campus.kelas.form</field>
         <field name="model">campus.kelas</field>
         <field name="arch" type="xml">
-            <form string="Form Kelas">
+            <form string="Form Kelas" create="false">
                 <sheet>
                     <div class="oe_title">
                         <h1><field name="name" placeholder="Kelas (A/B/C)"/></h1>

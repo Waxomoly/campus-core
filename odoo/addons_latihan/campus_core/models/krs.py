@@ -24,7 +24,7 @@ class CampusKRS(models.Model):
     semester = fields.Char(
         string='Semester', required=True,
         default=lambda self: self._default_semester(),
-        help='Contoh: Semester Gasal 2025/2026',
+        help='Contoh: Genap 2025/2026',
     )
     line_ids = fields.One2many(
         'campus.krs.line', 'krs_id', string='Mata Kuliah Diambil',
@@ -52,15 +52,15 @@ class CampusKRS(models.Model):
     def _default_semester(self):
         """Semester berjalan, ter-generate otomatis dari tanggal hari ini.
 
-        Format konsisten dengan Semester Aktif Mahasiswa,
-        mis. 'Semester Genap 2025/2026'.
+        Format konsisten dengan Semester Aktif Mahasiswa & Kelas,
+        mis. 'Genap 2025/2026'.
         """
         today = fields.Date.context_today(self)
         if today.month >= 8:
-            return "Semester Gasal %d/%d" % (today.year, today.year + 1)
+            return "Gasal %d/%d" % (today.year, today.year + 1)
         if today.month == 1:
-            return "Semester Gasal %d/%d" % (today.year - 1, today.year)
-        return "Semester Genap %d/%d" % (today.year - 1, today.year)
+            return "Gasal %d/%d" % (today.year - 1, today.year)
+        return "Genap %d/%d" % (today.year - 1, today.year)
 
     # ------------------------------------------------------------------
     # Compute
