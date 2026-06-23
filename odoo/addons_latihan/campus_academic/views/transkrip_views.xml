@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_campus_transkrip_list" model="ir.ui.view">
+        <field name="name">campus.transkrip.list</field>
+        <field name="model">campus.transkrip</field>
+        <field name="arch" type="xml">
+            <list string="Transkrip">
+                <field name="name"/>
+                <field name="mahasiswa_id"/>
+                <field name="total_sks"/>
+                <field name="ipk"/>
+                <field name="status_kelulusan" widget="badge"
+                       decoration-success="status_kelulusan == 'lulus'"
+                       decoration-warning="status_kelulusan == 'belum'"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'submitted'"
+                       decoration-success="state == 'approved'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_campus_transkrip_form" model="ir.ui.view">
+        <field name="name">campus.transkrip.form</field>
+        <field name="model">campus.transkrip</field>
+        <field name="arch" type="xml">
+            <form string="Transkrip">
+                <header>
+                    <button name="action_sync_krs" string="Tarik Data KRS" type="object"
+                            class="oe_highlight" icon="fa-refresh" invisible="state == 'approved'"
+                            groups="campus_core.group_academic_manager"/>
+
+                    <button name="action_submit" string="Submit" type="object" class="oe_highlight"
+                            invisible="state != 'draft'"
+                            groups="campus_core.group_academic_manager"/>
+
+                    <button name="action_approve" string="Approve" type="object" class="oe_highlight"
+                            invisible="state != 'submitted'"
+                            groups="campus_core.group_academic_manager"/>
+
+                    <button name="action_reset" string="Set to Draft" type="object"
+                            invisible="state == 'draft'"
+                            groups="campus_core.group_academic_manager"/>
+
+                    <button name="%(action_report_transkrip)d" string="Cetak Transkrip" type="action" class="btn-secondary"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,approved"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="mahasiswa_id" readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="total_sks"/>
+                            <field name="ipk"/>
+                            <field name="status_kelulusan"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Daftar Nilai" name="nilai">
+                            <field name="nilai_ids" readonly="state == 'approved'">
+                                <list editable="bottom">
+                                    <field name="mata_kuliah_id"/>
+                                    <field name="sks"/>
+                                    <field name="nilai_angka"/>
+                                    <field name="nilai_huruf" readonly="1"/>
+                                    <field name="bobot" readonly="1"/>
+                                    <field name="nilai_mutu" readonly="1"/>
+                                    <field name="is_lulus" readonly="1"/>
+                                    </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_campus_transkrip_search" model="ir.ui.view">
+        <field name="name">campus.transkrip.search</field>
+        <field name="model">campus.transkrip</field>
+        <field name="arch" type="xml">
+            <search string="Cari Transkrip">
+                <field name="name"/>
+                <field name="mahasiswa_id"/>
+                <filter name="filter_lulus" string="Lulus" domain="[('status_kelulusan', '=', 'lulus')]"/>
+                <filter name="filter_approved" string="Approved" domain="[('state', '=', 'approved')]"/>
+                <group>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_mahasiswa" string="Mahasiswa" context="{'group_by': 'mahasiswa_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_campus_transkrip" model="ir.actions.act_window">
+        <field name="name">Transkrip Nilai</field>
+        <field name="res_model">campus.transkrip</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_campus_transkrip" name="Transkrip Nilai"
+              parent="campus_core.menu_campus_academic"
+              action="action_campus_transkrip" sequence="20"/>
+</odoo>
