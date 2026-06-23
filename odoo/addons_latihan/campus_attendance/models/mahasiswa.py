@@ -31,10 +31,14 @@ class CampusMahasiswa(models.Model):
 
     def action_view_attendance(self):
         self.ensure_one()
+        view_id = self.env.ref('campus_attendance.view_campus_attendance_line_mahasiswa_list').id
         return {
             'type': 'ir.actions.act_window',
             'name': 'Riwayat Absensi',
             'res_model': 'campus.attendance.line',
             'view_mode': 'list',
+            'views': [(view_id, 'list')],
             'domain': [('mahasiswa_id', '=', self.id)],
+            'context': {'group_by': ['kelas_id']},
         }
+

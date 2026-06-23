@@ -24,9 +24,9 @@
         <field name="arch" type="xml">
             <form string="Sesi Absensi">
                 <header>
-                    <button name="action_generate_attendance" string="Generate Peserta" type="object" class="btn-primary" invisible="state != 'draft'"/>
-                    <button name="action_confirm" string="Confirm" type="object" class="oe_highlight" invisible="state != 'draft'"/>
-                    <button name="action_reset" string="Set to Draft" type="object" invisible="state != 'confirmed'"/>
+                    <button name="action_generate_attendance" string="Generate Peserta" type="object" class="btn-primary" invisible="state != 'draft'" groups="campus_core.group_campus_lecturer,campus_attendance.group_attendance_manager"/>
+                    <button name="action_confirm" string="Confirm" type="object" class="oe_highlight" invisible="state != 'draft'"  groups="campus_core.group_campus_lecturer,campus_attendance.group_attendance_manager"/>
+                    <button name="action_reset" string="Set to Draft" type="object" invisible="state != 'confirmed'" groups="campus_core.group_campus_lecturer,campus_attendance.group_attendance_manager"/>
                     <button name="%(action_report_attendance)d" string="Cetak Rekap" type="action" class="btn-secondary"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,confirmed"/>
                 </header>
@@ -36,7 +36,8 @@
                     </div>
                     <group>
                         <group>
-                            <field name="kelas_id" readonly="state != 'draft'"/>
+                            <field name="kelas_domain" invisible="1"/>
+                            <field name="kelas_id" readonly="state != 'draft'" domain="kelas_domain"/>
                             <field name="tanggal" readonly="state != 'draft'"/>
                             <field name="pertemuan" readonly="state != 'draft'"/>
                         </group>
@@ -91,23 +92,30 @@
         <field name="view_mode">list,form</field>
     </record>
 
-<!--    campus attendance line-->
-    <record id="view_campus_attendance_line_list" model="ir.ui.view">
-    <field name="name">campus.attendance.line.list</field>
-    <field name="model">campus.attendance.line</field>
-    <field name="arch" type="xml">
-        <list string="Riwayat Absensi">
-            <field name="session_id"/>
-            <field name="status" widget="badge"
-                   decoration-success="status == 'hadir'"
-                   decoration-warning="status == 'izin' or status == 'sakit'"
-                   decoration-danger="status == 'alpha'"/>
-            <field name="keterangan"/>
-        </list>
-    </field>
+     <!-- campus attendance line: view riwayat per mahasiswa (grouped by kelas) -->
+    <record id="view_campus_attendance_line_mahasiswa_list" model="ir.ui.view">
+        <field name="name">campus.attendance.line.mahasiswa.list</field>
+        <field name="model">campus.attendance.line</field>
+        <field name="arch" type="xml">
+            <list string="Riwayat Absensi" default_group_by="kelas_id">
+                <field name="kelas_id" optional="hide"/>
+                <field name="mata_kuliah_id" string="Mata Kuliah"/>
+                <field name="pertemuan" string="Pertemuan Ke"/>
+                <field name="status" widget="badge"
+                       decoration-success="status == 'hadir'"
+                       decoration-warning="status == 'izin' or status == 'sakit'"
+                       decoration-danger="status == 'alpha'"/>
+                <field name="keterangan"/>
+                <field name="is_hadir" string="Hadir" sum="Total Hadir"/>
+                <field name="is_izin" string="Izin" sum="Total Izin"/>
+                <field name="is_sakit" string="Sakit" sum="Total Sakit"/>
+                <field name="is_alpha" string="Alpha" sum="Total Alpha"/>
+            </list>
+        </field>
     </record>
 
     <menuitem id="menu_campus_attendance" name="Absensi"
               parent="campus_core.menu_campus_academic"
-              action="action_campus_attendance" sequence="30"/>
+              action="action_campus_attendance" sequence="30"
+              groups="campus_core.group_campus_lecturer"/>
 </odoo>

@@ -11,6 +11,7 @@ class CampusAttendanceSession(models.Model):
         string='Nama Sesi', compute='_compute_name', store=True,
         readonly=True, default='Draft',
     )
+    kelas_domain = fields.Char(compute='_compute_kelas_domain')
     kelas_id = fields.Many2one(
         'campus.kelas',
         string='Kelas',
@@ -28,6 +29,15 @@ class CampusAttendanceSession(models.Model):
         ('draft', 'Draft'),
         ('confirmed', 'Confirmed'),
     ], string='Status', default='draft', required=True, readonly=True, copy=False)
+
+    @api.depends_context('uid')
+    def _compute_kelas_domain(self):
+        is_manager = self.env.user.has_group('campus_attendance.group_attendance_manager')
+        for record in self:
+            if is_manager:
+                record.kelas_domain = '[]'
+            else:
+                record.kelas_domain = f"[('dosen_id.user_id', '=', {self.env.uid})]"
 
     @api.depends('kelas_id.mata_kuliah_id.kode_mk', 'pertemuan')
     def _compute_name(self):
@@ -108,6 +118,9 @@ class CampusAttendanceLine(models.Model):
     _name = 'campus.attendance.line'
     _description = 'Detail Kehadiran Mahasiswa'
 
+    kelas_id = fields.Many2one(related='session_id.kelas_id', store=True, string='Kelas')
+    mata_kuliah_id = fields.Many2one(related='session_id.kelas_id.mata_kuliah_id', store=True, string='Mata Kuliah')
+    pertemuan = fields.Integer(related='session_id.pertemuan', store=True, string='Pertemuan Ke')
     session_id = fields.Many2one(
         'campus.attendance.session', string='Sesi', required=True, ondelete='cascade',
     )
@@ -122,7 +135,19 @@ class CampusAttendanceLine(models.Model):
     ], string='Status', default='hadir', required=True)
     keterangan = fields.Char(string='Keterangan')
 
-    # onchange: minta keterangan kalau izin/sakit
+    is_hadir = fields.Integer(compute='_compute_status_int', store=True)
+    is_izin = fields.Integer(compute='_compute_status_int', store=True)
+    is_sakit = fields.Integer(compute='_compute_status_int', store=True)
+    is_alpha = fields.Integer(compute='_compute_status_int', store=True)
+
+    @api.depends('status')
+    def _compute_status_int(self):
+        for record in self:
+            record.is_hadir = 1 if record.status == 'hadir' else 0
+            record.is_izin = 1 if record.status == 'izin' else 0
+            record.is_sakit = 1 if record.status == 'sakit' else 0
+            record.is_alpha = 1 if record.status == 'alpha' else 0
+
     @api.onchange('status')
     def _onchange_status(self):
         if self.status in ('izin', 'sakit') and not self.keterangan:
