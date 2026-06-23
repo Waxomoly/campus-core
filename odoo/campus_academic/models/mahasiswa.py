@@ -24,6 +24,7 @@ class CampusMahasiswa(models.Model):
         for record in self:
             record.transkrip_count = len(record.transkrip_ids)
 
+    # mengambil nilai ipk langsung dari dokumen transkrip milik mahasiswa
     @api.depends('transkrip_ids.ipk')
     def _compute_ipk_total(self):
         for record in self:
@@ -39,6 +40,9 @@ class CampusMahasiswa(models.Model):
         'transkrip_ids.nilai_ids.is_lulus',
         'transkrip_ids.nilai_ids.sks',
     )
+
+    # filter dokumen transkrip yang status = approved
+    # kemudian, menjumlahkan SKS dari mata kuliah yang statusnya lulus
     def _compute_sks_lulus(self):
         for record in self:
             total = 0

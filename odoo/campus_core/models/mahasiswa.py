@@ -18,7 +18,7 @@ class CampusMahasiswa(models.Model):
     name = fields.Char(string='Nama Mahasiswa', required=True)
     email = fields.Char(string='Email', required=True, copy=False)
 
-    # Field untuk mengaitkan mahasiswa dengan akun login
+    # mengaitkan mahasiswa dengan akun login
     user_id = fields.Many2one('res.users', string='User Account', readonly=True, copy=False)
 
     tempat_lahir = fields.Char(string='Tempat Lahir')
