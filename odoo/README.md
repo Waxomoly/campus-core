@@ -94,7 +94,7 @@ c. Groups:
 ### 2. WORKFLOW & BUSINESS LOGIC ABSENSI
 
 * **Workflow Absensi:** Membangun alur status `Draft → Confirmed` untuk mengontrol proses pencatatan kehadiran mahasiswa.
-* **Generate Peserta Otomatis:** Sistem menghasilkan detail absensi secara otomatis berdasarkan mahasiswa yang terdaftar pada kelas melalui KRS, dengan status awal `alpha`.
+* **Generate Peserta Otomatis:** Sistem menghasilkan detail absensi secara otomatis berdasarkan mahasiswa yang terdaftar pada kelas melalui KRS, dengan status awal `hadir`.
 * **Penamaan Sesi Otomatis:** Nama sesi absensi dibentuk otomatis berdasarkan mata kuliah, kelas, dan nomor pertemuan untuk menjaga konsistensi data.
 * **Penguncian Data Setelah Konfirmasi:** Sesi yang telah berstatus `Confirmed` tidak dapat diubah maupun dihapus untuk menjaga integritas data akademik.
 * **Mahasiswa Melihat Absensi** Mahasiswa bisa melihat rekap absensinya di modul mahasiswa.
