@@ -97,34 +97,69 @@ Draft  →  [Ajukan]  →  Submitted  →  [Approve]  →  Approved
 
 ## Modul: Mata Kuliah, Kelas & Absensi
 # CLARISA
-### 1. MODEL & RELASI
-* **Master Mata Kuliah (`campus.mata_kuliah`):** Menyimpan kode, nama, SKS, dan dosen pengampu. Satu mata kuliah dapat dikaitkan ke Jurusan, Prodi, dan Fakultas. Ketiga field ini saling mengisi otomatis secara hierarkis (Jurusan → Prodi → Fakultas).
-* **Kelas sebagai pembagian slot (`campus.kelas`):** Satu mata kuliah bisa memiliki beberapa kelas (A, B, C), masing-masing dengan jadwal, ruangan, dosen, semester, dan kuota tersendiri.
-* **Sesi & Baris Absensi:** Setiap pertemuan direpresentasikan sebagai satu `campus.attendance.session` yang memiliki banyak baris `campus.attendance.line`. Masing-masing mencatat status kehadiran satu mahasiswa.
-* **Inheritance Mahasiswa:** Model `campus.mahasiswa` di-extend untuk menambahkan field rekap kehadiran tanpa mengubah model inti dari modul Core.
 
-### 2. SISTEM KUOTA KELAS (FCFS)
-* Kuota dihitung otomatis dari jumlah KRS yang berstatus `submitted` atau `processed` (belum ditolak).
-* Dari sana sistem menghasilkan nilai `terisi`, `sisa_kuota`, dan `is_available` secara real-time.
-* Validasi bentrok jadwal antar kelas dilakukan saat mahasiswa mengambil kelas melalui KRS.
+### 1. MODEL & RELASI (Architecture & ORM)
 
-### 3. WORKFLOW ABSENSI
-```
-Draft  →  [Confirm]  →  Confirmed
-  ↑                          |
-  └──── [Set to Draft] ──────┘
-```
-* **Draft:** Dosen membuat sesi per pertemuan, memilih kelas, dan mengisi daftar hadir. Nama sesi digenerate otomatis (contoh: `ABS/PWB/A/P3`).
-* **Generate Peserta:** Tombol ini menarik otomatis daftar mahasiswa dari KRS yang sudah disetujui dan mengisi semua baris dengan status awal `alpha`. Dosen tinggal mengubah status yang hadir.
-* **Confirmed:** Sesi terkunci. Daftar hadir tidak bisa diubah dan sesi tidak bisa dihapus.
-* **Set to Draft:** Membatalkan konfirmasi jika ada koreksi yang perlu dilakukan.
+* **Struktur Absensi Bertingkat:** Membangun model `campus.attendance.session` sebagai representasi satu pertemuan per kelas dan `campus.attendance.line` sebagai detail kehadiran setiap mahasiswa pada sesi tersebut.
+* **Relasi Kelas dan Absensi:** Setiap sesi absensi terhubung ke satu kelas (`campus.kelas`) sehingga informasi dosen, mata kuliah, jadwal, dan peserta dapat diturunkan langsung dari data akademik yang sudah ada.
+* **Integrasi dengan KRS:** Data peserta absensi diambil otomatis dari mahasiswa yang telah mengambil kelas melalui KRS yang telah disetujui, sehingga tidak diperlukan input peserta secara manual.
+* **Inheritance Mahasiswa:** Model `campus.mahasiswa` diperluas untuk menyimpan informasi rekapitulasi kehadiran dan integrasi dengan modul absensi.
 
-### 4. REKAP KEHADIRAN DI MAHASISWA
-* Modul ini memperluas form mahasiswa (via View Inheritance) dengan stat button absensi dan rekap persentase kehadiran.
-* Persentase dihitung otomatis dari seluruh riwayat absensi mahasiswa tersebut.
-* Jika persentase kehadiran di bawah 75%, banner peringatan muncul otomatis di form mahasiswa.
+### 2. WORKFLOW & BUSINESS LOGIC ABSENSI
 
-### 5. KEAMANAN
-* **Record Rules:** Pengguna biasa hanya melihat sesi absensi yang mereka buat sendiri. Role `Attendance Manager` dapat melihat seluruh sesi dari semua pengguna.
-* **Hak Akses:** Semua model didaftarkan dengan akses penuh `1,1,1,1` (Read, Write, Create, Unlink) untuk memastikan operasi CRUD dan tombol Delete tersedia di UI.
-* **Pemisahan Hak Akses UI:** Role Campus Student dan Campus Lecturer dikelompokkan dalam satu privilege sehingga satu user hanya bisa memiliki salah satu role.
+* **Workflow Absensi:** Membangun alur status `Draft → Confirmed` untuk mengontrol proses pencatatan kehadiran mahasiswa.
+* **Generate Peserta Otomatis:** Sistem menghasilkan detail absensi secara otomatis berdasarkan mahasiswa yang terdaftar pada kelas melalui KRS, dengan status awal `hadir`.
+* **Penamaan Sesi Otomatis:** Nama sesi absensi dibentuk otomatis berdasarkan mata kuliah, kelas, dan nomor pertemuan untuk menjaga konsistensi data.
+* **Penguncian Data Setelah Konfirmasi:** Sesi yang telah berstatus `Confirmed` tidak dapat diubah maupun dihapus untuk menjaga integritas data akademik.
+* **Mahasiswa Melihat Absensi** Mahasiswa bisa melihat rekap absensinya di modul mahasiswa.
+
+### 3. OVERRIDE METHOD & COMPUTE LOGIC
+
+* **Compute Rekap Kehadiran:** Menghitung otomatis jumlah hadir, izin, sakit, alpha, dan persentase kehadiran mahasiswa menggunakan `@api.depends`.
+* **Generate Detail Absensi Otomatis:** Implementasi action untuk membentuk record `campus.attendance.line` berdasarkan peserta kelas yang valid.
+* **Status Kehadiran Real-Time:** Rekap dan persentase kehadiran diperbarui otomatis setiap kali terjadi perubahan pada data absensi.
+* **Override CRUD (Data Locking):** Override method `write()` dan `unlink()` untuk mencegah perubahan atau penghapusan sesi absensi yang telah dikonfirmasi.
+
+### 4. VIEW INHERITANCE & SECURITY
+
+* **View Inheritance Mahasiswa:** Menambahkan smart button absensi, riwayat kehadiran, rekap statistik, dan indikator persentase kehadiran pada form mahasiswa tanpa mengubah view asli modul Core.
+* **Record Rules Berbasis Peran:** Mahasiswa hanya dapat melihat data absensi miliknya sendiri, sedangkan dosen hanya dapat mengakses dan mengelola absensi pada kelas yang diampunya.
+* **Attendance Manager:** Pengguna dengan role Attendance Manager memiliki akses penuh terhadap seluruh data sesi dan detail absensi lintas kelas.
+* **Pemisahan Hak Akses UI:** Role Campus Student dan Campus Lecturer ditempatkan dalam satu privilege sehingga pengguna hanya dapat memiliki satu peran utama. Hak pengelolaan absensi diatur melalui privilege Attendance Access yang memungkinkan dosen tertentu memperoleh akses sebagai Attendance Manager.
+* **Access Control:** Hak Read, Write, Create, dan Delete diatur `ir.model.access.csv`.
+
+## Modul: Facility
+# KELLY
+### 1. MODEL & RELASI (Architecture & ORM)
+
+* Master Data Fasilitas & Ruangan: Membangun seluruh master data untuk aset fisik di `campus_facility` (Ruangan, Kapasitas, Fasilitas, Stok) yang terintegrasi langsung dengan entitas sivitas akademika.
+* Relasi Dinamis Peminjam (Polymorphic-like): Field peminjam secara otomatis menyesuaikan relasi (ke model `campus.mahasiswa` atau `campus.dosen`) berdasarkan pemilihan tipe peminjam pada *radio button* (jika manager) atau role peminjam di campus_core (jika non-manager).
+* Relasi Tracking & Audit: Menyimpan relasi `created_by_id` dan `status_changed_by_id` yang terhubung ke `res.users` untuk melacak jejak audit pihak pembuat dan pengubah status.
+* Pembuatan akun untuk setiap mahasiswa/dosen yang dibuat di campus_core. (modul campus_core)
+
+### 2. WORKFLOW & BUSINESS LOGIC
+
+* Fondasi Reservasi (Facility & Room Booking): Membangun inti transaksi peminjaman `campus.facility.booking` dan `campus.room.booking` dengan alur persetujuan: `Draft` $\rightarrow$ `Submitted` $\rightarrow$ `Approved` / `Rejected`.
+* Validasi Bisnis Reservasi (Constraints):
+  * Mencegah jadwal peminjaman ruangan yang saling bentrok (overlap waktu).
+  * Mencegah peminjaman jika sisa stok fasilitas/barang pada rentang waktu tersebut tidak mencukupi.
+  * Validasi jumlah peserta tidak boleh melebihi kapasitas maksimum ruangan.
+  * Logika waktu: waktu selesai wajib lebih besar (setelah) waktu mulai.
+* Penomoran Reservasi Otomatis (Sequence on-the-fly): Menghasilkan nomor tiket secara otomatis berdasarkan kode aset (contoh: `BKR/R01/00001` atau `BK/LAB/00001`).
+* Deteksi Profil Otomatis: Sistem membaca akun yang sedang *login*, mendeteksi *role*-nya, lalu otomatis mengisi form identitas (Mahasiswa/Dosen) untuk meminimalisir kesalahan input.
+
+### 3. OVERRIDE METHOD & COMPUTE LOGIC
+
+* Compute Stok Dinamis: Menghitung otomatis `kuantitas_tersedia` (`@api.depends`) dengan mengambil total inventaris kampus lalu menguranginya dengan jumlah barang yang sedang dipinjam (overlap) pada jadwal yang dipilih.
+* Override CRUD (Penguncian & Proteksi Data):
+  * Override `unlink`: Memproteksi dokumen; data yang sudah `Approved` sama sekali tidak bisa dihapus. Non-manager hanya diizinkan menghapus reservasi miliknya yang masih *Draft*.
+  * Override `write`: Mencegah akun lain mengubah status kembali ke *Draft* jika ia bukan pembuat asli dokumen tersebut.
+  * Override `create`: Melakukan validasi kelayakan *user* sebelum rekaman masuk ke *database* dan menginisialisasi *sequence*.
+* Onchange Validation: Memunculkan notifikasi *pop-up warning* di UI secara *real-time* ketika input jadwal tidak masuk akal atau peserta melampaui kapasitas ruang.
+
+### 4. VIEW INHERITANCE & SECURITY
+
+* Arsitektur Keamanan Odoo 19: Mengimplementasikan struktur *Privilege* (`res.groups.privilege`) untuk meletekkan opsi hak akses di bawah kategori Campus pada pengaturan pengguna.
+* Keamanan Database (Record Rule): Peminjam hanya dapat melihat riwayat peminjamannya sendiri (`rule_booking_own`), sedangkan Manager dapat melihat dan memproses seluruh data di kampus (`rule_booking_manager`).
+* Dynamic View & UI/UX: Mendesain antarmuka *form* dengan *widget* modern (`radio`, `statusbar`, `badge`, `many2one_avatar_user`) serta mengatur *readonly* dan *invisible* secara dinamis berdasarkan status dokumen.
+* Report PDF (QWeb): Merancang format cetak dokumen Bukti Reservasi Ruangan ke dalam format PDF (`report_room_booking_doc`) yang memuat data lengkap peminjam dan status otorisasi *approval*.
