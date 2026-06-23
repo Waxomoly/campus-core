@@ -1,5 +1,6 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_campus_attendance_session_user,access.campus.attendance.session.user,model_campus_attendance_session,base.group_user,1,1,1,0
 access_campus_attendance_session_manager,access.campus.attendance.session.manager,model_campus_attendance_session,group_attendance_manager,1,1,1,1
-access_campus_attendance_line_user,access.campus.attendance.line.user,model_campus_attendance_line,base.group_user,1,1,1,1
+access_campus_attendance_line_user,access.campus.attendance.line.user,model_campus_attendance_line,base.group_user,1,0,0,0
 access_campus_attendance_line_manager,access.campus.attendance.line.manager,model_campus_attendance_line,group_attendance_manager,1,1,1,1
+access_campus_attendance_session_lecturer,access.campus.attendance.session.lecturer,model_campus_attendance_session,campus_core.group_campus_lecturer,1,1,1,1
+access_campus_attendance_line_lecturer,access.campus.attendance.line.lecturer,model_campus_attendance_line,campus_core.group_campus_lecturer,1,1,1,1

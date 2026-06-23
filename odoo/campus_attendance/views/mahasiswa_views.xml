@@ -5,13 +5,13 @@
         <field name="model">campus.mahasiswa</field>
         <field name="inherit_id" ref="campus_core.view_campus_mahasiswa_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//sheet/group[1]" position="before">
-                <div class="oe_button_box" name="button_box_attendance">
+            <xpath expr="//div[@name='button_box']" position="inside">
                     <button class="oe_stat_button" type="object"
                             name="action_view_attendance" icon="fa-check-square-o">
                         <field name="attendance_count" widget="statinfo" string="Absensi"/>
                     </button>
-                </div>
+            </xpath>
+            <xpath expr="//sheet/group[1]" position="before">
                 <div class="alert alert-warning" role="alert" invisible="not warning_kehadiran">
                     Peringatan: Persentase kehadiran mahasiswa ini di bawah 75%!
                 </div>
