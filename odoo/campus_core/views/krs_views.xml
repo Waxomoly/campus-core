@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_campus_krs_list" model="ir.ui.view">
+        <field name="name">campus.krs.list</field>
+        <field name="model">campus.krs</field>
+        <field name="arch" type="xml">
+            <list string="Daftar KRS">
+                <field name="name"/>
+                <field name="mahasiswa_id"/>
+                <field name="dosen_pembimbing_id"/>
+                <field name="semester"/>
+                <field name="total_sks" sum="Total Keseluruhan SKS"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'submitted'"
+                       decoration-success="state == 'processed'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_campus_krs_form" model="ir.ui.view">
+        <field name="name">campus.krs.form</field>
+        <field name="model">campus.krs</field>
+        <field name="arch" type="xml">
+            <form string="Form KRS">
+                <header>
+                    <!-- Student: kunci KRS -->
+                    <button name="action_submit" string="Submit KRS" type="object"
+                            class="oe_highlight" invisible="state != 'draft'"
+                            groups="campus_core.group_campus_student"/>
+                    <!-- Lecturer: proses setelah memeriksa -->
+                    <button name="action_process" string="Proses KRS" type="object"
+                            class="oe_highlight" invisible="state != 'submitted'"
+                            groups="campus_core.group_campus_lecturer"/>
+                    <button name="action_reset" string="Kembali Ke Draft" type="object"
+                            invisible="state != 'submitted'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,processed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="mahasiswa_id" readonly="state != 'draft'"/>
+                            <field name="dosen_pembimbing_id" readonly="state == 'processed'"/>
+                            <field name="semester" readonly="state != 'draft'"
+                                   placeholder="Contoh: Semester Gasal 2025/2026"/>
+                        </group>
+                        <group>
+                            <field name="total_sks"/>
+                            <field name="allowed_kelas_ids" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Mata Kuliah Terpilih" name="mata_kuliah">
+                            <field name="line_ids" readonly="state != 'draft'">
+                                <list editable="bottom">
+                                    <field name="kelas_id"/>
+                                    <field name="mata_kuliah_id"/>
+                                    <field name="sks"/>
+                                    <field name="dosen_id"/>
+                                    <field name="hari"/>
+                                    <field name="jam_mulai" widget="float_time"/>
+                                    <field name="jam_selesai" widget="float_time"/>
+                                    <field name="ruangan"/>
+                                    <field name="state" widget="badge"
+                                           decoration-info="state == 'pending'"
+                                           decoration-success="state == 'approved'"
+                                           decoration-danger="state == 'rejected'"/>
+                                    <button name="action_approve_line" type="object"
+                                            string="Setujui" icon="fa-check" title="Setujui"
+                                            invisible="parent.state != 'submitted' or state == 'approved'"
+                                            groups="campus_core.group_campus_lecturer"/>
+                                    <button name="action_reject_line" type="object"
+                                            string="Tolak" icon="fa-times" title="Tolak"
+                                            invisible="parent.state != 'submitted' or state == 'rejected'"
+                                            groups="campus_core.group_campus_lecturer"/>
+                                </list>
+                            </field>
+                            <group class="oe_subtotal_footer oe_right">
+                                <field name="total_sks"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_campus_krs_search" model="ir.ui.view">
+        <field name="name">campus.krs.search</field>
+        <field name="model">campus.krs</field>
+        <field name="arch" type="xml">
+            <search string="Cari KRS">
+                <field name="name"/>
+                <field name="mahasiswa_id"/>
+                <field name="dosen_pembimbing_id"/>
+                <field name="semester"/>
+                <filter name="filter_submitted" string="Submitted" domain="[('state', '=', 'submitted')]"/>
+                <filter name="filter_processed" string="Processed" domain="[('state', '=', 'processed')]"/>
+                <group>
+                    <filter name="group_mahasiswa" string="Mahasiswa" context="{'group_by': 'mahasiswa_id'}"/>
+                    <filter name="group_semester" string="Semester" context="{'group_by': 'semester'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_campus_krs" model="ir.actions.act_window">
+        <field name="name">KRS Enrollment</field>
+        <field name="res_model">campus.krs</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_campus_krs" name="KRS Enrollment" parent="menu_campus_academic" action="action_campus_krs" sequence="10"/>
+</odoo>
