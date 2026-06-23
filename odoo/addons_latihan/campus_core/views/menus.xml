@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <menuitem id="menu_campus_root" name="Campus Management" sequence="10"/>
+    <menuitem id="menu_campus_root" name="Campus Management" sequence="10"
+              groups="campus_core.group_campus_student"/>
 
     <menuitem id="menu_campus_academic" name="Academic" parent="menu_campus_root" sequence="10"/>
     <menuitem id="menu_campus_master" name="Master Data" parent="menu_campus_root" sequence="20"

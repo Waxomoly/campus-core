@@ -27,14 +27,22 @@
     <record id="group_academic_manager" model="res.groups">
         <field name="name">Manager</field>
         <field name="privilege_id" ref="privilege_campus_role"/>
-        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <!-- Manager mewarisi seluruh kemampuan Dosen (Lecturer),
+             termasuk akses penuh ke Organisasi, Proposal, & Master Data HR. -->
+        <field name="implied_ids" eval="[(4, ref('group_campus_lecturer'))]"/>
     </record>
 
+    <!-- Mahasiswa boleh MEMBACA semua data mahasiswa (read-only) supaya bisa
+         memilih teman saat menyusun Ketua Panitia & Struktur Kepanitiaan di
+         Proposal Kegiatan. Tetap aman: ACL student read-only (tidak bisa edit),
+         menu Master Data disembunyikan dari mahasiswa, dan "Profil Saya" tetap
+         membuka data dirinya sendiri. Visibilitas KRS tetap milik-sendiri
+         (diatur terpisah oleh rule_krs_own_student). -->
     <record id="rule_mahasiswa_own_profile" model="ir.rule">
-        <field name="name">Mahasiswa: Hanya lihat profil sendiri</field>
+        <field name="name">Mahasiswa: boleh lihat semua mahasiswa (read-only)</field>
         <field name="model_id" ref="model_campus_mahasiswa"/>
         <field name="groups" eval="[(4, ref('group_campus_student'))]"/>
-        <field name="domain_force">[('user_id', '=', user.id)]</field>
+        <field name="domain_force">[(1, '=', 1)]</field>
     </record>
     <record id="rule_mahasiswa_manager" model="ir.rule">
         <field name="name">Mahasiswa: Manager lihat semua</field>

@@ -17,6 +17,12 @@ class CampusKRS(models.Model):
     mahasiswa_id = fields.Many2one(
         'campus.mahasiswa', string='Mahasiswa',
         required=True, ondelete='restrict',
+        default=lambda self: self._default_mahasiswa(),
+    )
+    # True jika user boleh memilih mahasiswa secara bebas (Dosen/Manager).
+    # Mahasiswa biasa: False -> mahasiswa_id terkunci ke akun yang login.
+    can_pick_mahasiswa = fields.Boolean(
+        string='Boleh Pilih Mahasiswa', compute='_compute_can_pick_mahasiswa',
     )
     dosen_pembimbing_id = fields.Many2one(
         'campus.dosen', string='Dosen Pembimbing Akademik', ondelete='restrict',
@@ -46,8 +52,26 @@ class CampusKRS(models.Model):
         readonly=True, copy=False)
 
     # ------------------------------------------------------------------
-    # Default
+    # Default & Compute hak pilih
     # ------------------------------------------------------------------
+    @api.model
+    def _default_mahasiswa(self):
+        """Auto-assign mahasiswa = data mahasiswa milik user yang login.
+
+        Mahasiswa yang login otomatis terisi dirinya sendiri. Dosen/Manager
+        (tidak terhubung ke data mahasiswa) akan kosong -> bebas memilih.
+        """
+        return self.env['campus.mahasiswa'].search(
+            [('user_id', '=', self.env.uid)], limit=1
+        )
+
+    @api.depends_context('uid')
+    def _compute_can_pick_mahasiswa(self):
+        # Dosen & Manager (mewarisi Lecturer) boleh memilih mahasiswa bebas.
+        boleh = self.env.user.has_group('campus_core.group_campus_lecturer')
+        for record in self:
+            record.can_pick_mahasiswa = boleh
+
     @api.model
     def _default_semester(self):
         """Semester berjalan, ter-generate otomatis dari tanggal hari ini.

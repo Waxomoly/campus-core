@@ -36,6 +36,12 @@ class CampusProposal(models.Model):
     panitia_ids = fields.One2many(
         'campus.proposal.panitia', 'proposal_id', string='Struktur Kepanitiaan',
     )
+    # Mahasiswa yang sudah terpakai (Ketua Panitia + anggota kepanitiaan).
+    # Dipakai untuk menyaring dropdown agar tiap mahasiswa unik dalam 1 proposal.
+    panitia_mahasiswa_ids = fields.Many2many(
+        'campus.mahasiswa', string='Mahasiswa Terpakai',
+        compute='_compute_panitia_mahasiswa_ids',
+    )
 
     # Nomor urut kegiatan dalam satu organisasi (dasar penomoran)
     no_kegiatan = fields.Integer(string='No. Kegiatan', readonly=True, copy=False)
@@ -98,8 +104,16 @@ class CampusProposal(models.Model):
         )
 
     # ------------------------------------------------------------------
-    # Onchange
+    # Compute
     # ------------------------------------------------------------------
+    @api.depends('ketua_panitia_id', 'panitia_ids.mahasiswa_id')
+    def _compute_panitia_mahasiswa_ids(self):
+        for record in self:
+            mhs = record.panitia_ids.mapped('mahasiswa_id')
+            if record.ketua_panitia_id:
+                mhs |= record.ketua_panitia_id
+            record.panitia_mahasiswa_ids = mhs
+
     # ------------------------------------------------------------------
     # Onchange
     # ------------------------------------------------------------------
@@ -225,6 +239,13 @@ class CampusProposalPanitia(models.Model):
     @api.constrains('mahasiswa_id', 'proposal_id')
     def _check_duplicate_panitia(self):
         for record in self:
+            # Tidak boleh merangkap sebagai Ketua Panitia
+            if record.mahasiswa_id and record.mahasiswa_id == record.proposal_id.ketua_panitia_id:
+                raise ValidationError(
+                    "Mahasiswa ini sudah menjadi Ketua Panitia, "
+                    "tidak boleh merangkap di struktur kepanitiaan!"
+                )
+            # Tidak boleh dobel di kepanitiaan proposal yang sama
             duplikat = self.search_count([
                 ('id', '!=', record.id),
                 ('proposal_id', '=', record.proposal_id.id),

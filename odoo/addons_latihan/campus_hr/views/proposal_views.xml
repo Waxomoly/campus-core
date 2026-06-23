@@ -53,6 +53,7 @@
                             <field name="file_proposal" filename="file_proposal_name"
                                    readonly="state != 'draft'" widget="binary"/>
                             <field name="file_proposal_name" invisible="1"/>
+                            <field name="panitia_mahasiswa_ids" invisible="1"/>
                             <field name="tanggal_masuk" readonly="1" invisible="not tanggal_masuk"/>
                             <field name="tanggal_disetujui" readonly="1" invisible="not tanggal_disetujui"/>
                         </group>
@@ -63,7 +64,8 @@
                                 <list editable="bottom">
                                     <field name="divisi_id"/>
                                     <field name="divisi_is_bph" column_invisible="1"/>
-                                    <field name="mahasiswa_id"/>
+                                    <field name="mahasiswa_id"
+                                           domain="[('id', 'not in', parent.panitia_mahasiswa_ids)]"/>
                                     <field name="jabatan_id"
                                            domain="[('is_bph', '=', divisi_is_bph)]"/>
                                 </list>

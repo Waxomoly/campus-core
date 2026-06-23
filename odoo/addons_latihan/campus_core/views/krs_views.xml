@@ -44,7 +44,8 @@
                     </div>
                     <group>
                         <group>
-                            <field name="mahasiswa_id" readonly="state != 'draft'"/>
+                            <field name="can_pick_mahasiswa" invisible="1"/>
+                            <field name="mahasiswa_id" readonly="state != 'draft' or not can_pick_mahasiswa"/>
                             <field name="dosen_pembimbing_id" readonly="state == 'processed'"/>
                             <field name="semester" readonly="state != 'draft'"
                                    placeholder="Contoh: Genap 2025/2026"/>

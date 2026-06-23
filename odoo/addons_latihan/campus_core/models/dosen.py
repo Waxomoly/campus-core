@@ -16,7 +16,6 @@ class CampusDosen(models.Model):
 
     user_id = fields.Many2one('res.users', string='Akun Pengguna', readonly=True, copy=False)
 
-    # ---- Struktur akademik (hierarki kampus) ----
     fakultas_id = fields.Many2one(
         'campus.fakultas', string='Fakultas',
         ondelete='restrict', index=True,
@@ -34,7 +33,7 @@ class CampusDosen(models.Model):
 
     mata_kuliah_ids = fields.Many2many(
         'campus.mata_kuliah',
-        relation='campus_mk_dosen_rel',  # ← sama persis
+        relation='campus_mk_dosen_rel',
         column1='dosen_id',
         column2='mata_kuliah_id',
         string='Mata Kuliah Diampu',

@@ -139,7 +139,7 @@ else:
     </record>
 
     <menuitem id="menu_campus_my_profile" name="Profil Saya"
-              parent="menu_campus_root" sequence="5"
+              parent="menu_campus_root" sequence="50"
               action="action_campus_my_profile"
               groups="campus_core.group_campus_student"/>
 </odoo>
