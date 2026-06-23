@@ -50,7 +50,15 @@
                             <field name="line_ids" readonly="state == 'confirmed'">
                                 <list editable="bottom">
                                     <field name="mahasiswa_id"/>
-                                    <field name="status"/>
+                                    <!-- Draft: dropdown bisa diedit dosen -->
+                                    <field name="status"
+                                           column_invisible="parent.state == 'confirmed'"/>
+                                    <!-- Confirmed: badge berwarna (read-only) -->
+                                    <field name="status" widget="badge"
+                                           column_invisible="parent.state != 'confirmed'"
+                                           decoration-success="status == 'hadir'"
+                                           decoration-warning="status == 'izin' or status == 'sakit'"
+                                           decoration-danger="status == 'alpha'"/>
                                     <field name="keterangan"/>
                                 </list>
                             </field>

@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Kategori + Privilege "Campus Role": membuat Student & Lecturer tampil
-         sebagai SATU pilihan role (dropdown) di form User, bukan checkbox
-         terpisah. Dengan begitu satu user hanya bisa Student ATAU Lecturer.
-         (Odoo 19: res.groups pakai privilege_id, bukan category_id.) -->
     <record id="module_category_campus" model="ir.module.category">
         <field name="name">Campus</field>
         <field name="sequence">20</field>
@@ -16,17 +12,47 @@
         <field name="sequence">10</field>
     </record>
 
-    <!-- Role: Mahasiswa (Student) -->
     <record id="group_campus_student" model="res.groups">
-        <field name="name">Campus / Student (Mahasiswa)</field>
+        <field name="name">Mahasiswa</field>
         <field name="privilege_id" ref="privilege_campus_role"/>
         <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
     </record>
 
-    <!-- Role: Dosen / Pembimbing Akademik (Lecturer) -->
     <record id="group_campus_lecturer" model="res.groups">
-        <field name="name">Campus / Lecturer (Dosen Pembimbing)</field>
+        <field name="name">Dosen</field>
         <field name="privilege_id" ref="privilege_campus_role"/>
         <field name="implied_ids" eval="[(4, ref('group_campus_student'))]"/>
+    </record>
+
+    <record id="group_academic_manager" model="res.groups">
+        <field name="name">Manager</field>
+        <field name="privilege_id" ref="privilege_campus_role"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="rule_mahasiswa_own_profile" model="ir.rule">
+        <field name="name">Mahasiswa: Hanya lihat profil sendiri</field>
+        <field name="model_id" ref="model_campus_mahasiswa"/>
+        <field name="groups" eval="[(4, ref('group_campus_student'))]"/>
+        <field name="domain_force">[('user_id', '=', user.id)]</field>
+    </record>
+    <record id="rule_mahasiswa_manager" model="ir.rule">
+        <field name="name">Mahasiswa: Manager lihat semua</field>
+        <field name="model_id" ref="model_campus_mahasiswa"/>
+        <field name="groups" eval="[(4, ref('group_academic_manager'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_krs_own_student" model="ir.rule">
+        <field name="name">KRS: Mahasiswa hanya lihat miliknya</field>
+        <field name="model_id" ref="model_campus_krs"/>
+        <field name="groups" eval="[(4, ref('group_campus_student'))]"/>
+        <field name="domain_force">[('mahasiswa_id.user_id', '=', user.id)]</field>
+    </record>
+    <record id="rule_krs_manager" model="ir.rule">
+        <field name="name">KRS: Manager lihat semua</field>
+        <field name="model_id" ref="model_campus_krs"/>
+        <field name="groups" eval="[(4, ref('group_academic_manager'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
     </record>
 </odoo>

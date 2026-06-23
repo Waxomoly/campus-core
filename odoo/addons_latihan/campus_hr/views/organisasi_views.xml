@@ -43,7 +43,8 @@
                             <field name="kode"/>
                             <field name="name"/>
                             <field name="tipe_id" required="1"/>
-                            <field name="ketua_id" required="1"/>
+                            <field name="ketua_id" required="1"
+                                   domain="[('sudah_berorganisasi', '=', False)]"/>
                         </group>
                         <group>
                             <field name="pembina_id"/>
@@ -55,7 +56,8 @@
                         <page string="Struktur Organisasi" name="anggota">
                             <field name="anggota_ids">
                                 <list editable="bottom">
-                                    <field name="mahasiswa_id"/>
+                                    <field name="mahasiswa_id"
+                                           domain="[('sudah_berorganisasi', '=', False), ('id', '!=', parent.ketua_id)]"/>
                                     <field name="jabatan_id" required="1"
                                            domain="['|', ('tipe_id', '=', False), ('tipe_id', '=', parent.tipe_id)]"/>
                                 </list>

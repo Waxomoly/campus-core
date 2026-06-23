@@ -27,10 +27,21 @@
             <form string="Transkrip">
                 <header>
                     <button name="action_sync_krs" string="Tarik Data KRS" type="object"
-                            class="oe_highlight" icon="fa-refresh" invisible="state == 'approved'"/>
-                    <button name="action_submit" string="Submit" type="object" class="oe_highlight" invisible="state != 'draft'"/>
-                    <button name="action_approve" string="Approve" type="object" class="oe_highlight" invisible="state != 'submitted'"/>
-                    <button name="action_reset" string="Set to Draft" type="object" invisible="state == 'draft'"/>
+                            class="oe_highlight" icon="fa-refresh" invisible="state == 'approved'"
+                            groups="campus_core.group_academic_manager"/>
+
+                    <button name="action_submit" string="Submit" type="object" class="oe_highlight"
+                            invisible="state != 'draft'"
+                            groups="campus_core.group_academic_manager"/>
+
+                    <button name="action_approve" string="Approve" type="object" class="oe_highlight"
+                            invisible="state != 'submitted'"
+                            groups="campus_core.group_academic_manager"/>
+
+                    <button name="action_reset" string="Set to Draft" type="object"
+                            invisible="state == 'draft'"
+                            groups="campus_core.group_academic_manager"/>
+
                     <button name="%(action_report_transkrip)d" string="Cetak Transkrip" type="action" class="btn-secondary"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,submitted,approved"/>
                 </header>
