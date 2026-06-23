@@ -46,76 +46,54 @@ c. Groups:
 
 
 # REYHAN
-### 1. MODEL & RELASI (Architecture & ORM)
 
-* Master Data Akademik: Membangun seluruh master data inti di `campus_core` (Mahasiswa, Dosen, Mata Kuliah, Kelas) sebagai fondasi seluruh sistem.
-* Hirarki Struktur Kampus: Merancang relasi berjenjang Fakultas $\rightarrow$ Prodi $\rightarrow$ Jurusan, dengan `fakultas_id` pada Jurusan di-related otomatis dari Prodi agar hirarki saling terhubung.
-* Dynamic Selection: Dropdown Angkatan & Semester Aktif di-generate otomatis dari tahun berjalan (library Python datetime) tanpa hard-code, beserta default semester berjalan.
-* Relasi Dua Arah Dosen ↔ Mata Kuliah: Many2many memakai relasi yang sama persis (`campus_mk_dosen_rel`) sehingga "Dosen Pengampu" dan "Mata Kuliah Diampu" konsisten dua arah.
-* Master Data Organisasi: Membangun seluruh master data `campus_hr` (Tipe Organisasi, Jabatan, Jabatan Kepanitiaan, Divisi) sebagai acuan fitur Organisasi.
+### 1. Modul yang dibuat
+* **Core module (`campus_core`):** Membangun fondasi master data akademik (Mahasiswa, Dosen, Mata Kuliah, Kelas, struktur kampus) beserta sistem **KRS / Enrollment**.
+* **Academic (`campus_academic`):** Membangun fondasi awal **Transkrip Nilai** (`campus.transkrip`, 1 Mahasiswa = 1 Transkrip), termasuk konversi nilai angka (0-100) ke huruf, bobot, dan nilai mutu.
+* **HR module (`campus_hr`):** Membangun penuh fitur **keorganisasian** — Data Organisasi, Proposal Kegiatan, dan Kepanitiaan, beserta master data pendukungnya (Tipe Organisasi, Jabatan, Jabatan Kepanitiaan, Divisi).
 
-### 2. WORKFLOW & BUSINESS LOGIC
+### 2. Model & Relasi
+* **Hirarki Struktur Kampus:** Relasi berjenjang Fakultas → Prodi → Jurusan; `fakultas_id` pada Jurusan di-*related* otomatis dari Prodi agar hirarki saling terhubung.
+* **Relasi Dua Arah Dosen ↔ Mata Kuliah:** Many2many memakai tabel relasi yang sama persis (`campus_mk_dosen_rel`), sehingga "Dosen Pengampu" dan "Mata Kuliah Diampu" konsisten dua arah.
+* **KRS (`campus.krs`):** One2many ke baris mata kuliah; tiap baris menarik referensi SKS, dosen, dan jadwal dari Kelas secara otomatis.
+* **Organisasi & Proposal (`campus_hr`):** Organisasi → One2many ke anggota & proposal; Proposal → One2many ke struktur kepanitiaan.
 
-* Fondasi Sistem KRS/Enrollment: Membangun inti `campus.krs` — lembar KRS per mahasiswa per semester beserta baris mata kuliahnya.
-* Validasi Bisnis KRS (Constraints):
-* Limit maksimal SKS (24 SKS).
-* Cegah jadwal kelas yang bentrok (`is_bentrok_with`).
-* Sistem kuota kelas rebutan (FCFS).
-* Hanya mahasiswa berstatus `Aktif` yang boleh mengisi KRS, dan 1 mata kuliah = 1 kelas.
-* Workflow KRS Berjenjang: Alur Student ↔ Lecturer melalui status `Draft` $\rightarrow$ `Submitted` $\rightarrow$ `Processed`.
-* Fondasi Transkrip Nilai: Membangun awal `campus.transkrip` (1 Mahasiswa = 1 Transkrip) beserta konversi nilai angka (0-100) menjadi huruf, bobot, dan nilai mutu.
-* Fitur Organisasi (keseluruhan): Membangun penuh modul `campus_hr` — Data Organisasi, Proposal Kegiatan, dan Kepanitiaan.
-* Penomoran Proposal Otomatis: Menghasilkan nomor resmi format `001/NVSTLK/HIMA/PCU/VI/2026` (ambil konsonan judul + bulan Romawi + nomor urut otomatis).
-* Aturan BPH Kepanitiaan: Divisi BPH hanya boleh diisi jabatan BPH, divalidasi real-time (onchange) sekaligus lewat constraint.
+### 3. Workflow
+**KRS / Enrollment** diatur oleh field `state`:
+```
+Draft  →  [Submit]  →  Submitted  →  [Process]  →  Processed
+```
+* **Draft:** Mahasiswa memilih kelas (hanya mahasiswa berstatus `Aktif` yang boleh mengisi KRS).
+* **Submitted:** Pilihan dikunci & divalidasi oleh mahasiswa.
+* **Processed:** Dosen/Lecturer memproses serta menyetujui per mata kuliah.
 
-### 3. OVERRIDE METHOD & COMPUTE LOGIC
+**Proposal Kegiatan** diatur oleh field `state`:
+```
+Draft  →  [Ajukan]  →  Submitted  →  [Approve]  →  Approved
+                                  └→  [Reject]   →  Rejected
+```
+* **Submitted:** Mahasiswa mengajukan proposal (cek anggaran & ketua panitia).
+* **Approved:** Disetujui Lecturer; nomor resmi proposal dibuat sekali tepat di tahap ini.
 
-* Compute Logic: Menghitung otomatis jumlah prodi/jurusan, jumlah anggota & proposal organisasi, serta kuota kelas (`terisi`, `sisa_kuota`, `is_available`) menggunakan @api.depends.
-* Override CRUD (Penguncian Data): Override `create`/`write`/`unlink` agar Proposal & Transkrip yang sudah `Approved` tidak bisa diubah/dihapus, serta menolak proposal dari organisasi non-aktif.
-* Auto-isi Cakupan Akademik: Onchange pada Mata Kuliah — memilih Jurusan otomatis mengisi Prodi & Fakultas ke atas.
+### 4. Business Logic
+* **Dynamic Selection:** Dropdown Angkatan & Semester Aktif di-*generate* otomatis dari tahun berjalan (Python `datetime`) tanpa hard-code, beserta default semester berjalan.
+* **Validasi KRS:** Batas maksimal **24 SKS**, cegah jadwal kelas bentrok (`is_bentrok_with`), sistem kuota kelas rebutan (FCFS), dan **1 mata kuliah = 1 kelas** dalam satu KRS.
+* **Mahasiswa Hanya 1 Organisasi:** Satu mahasiswa **tidak boleh tergabung di lebih dari satu organisasi** — divalidasi lintas semua organisasi, baik sebagai anggota maupun Ketua Umum.
+* **Validasi Kepanitiaan:** Satu mahasiswa **tidak boleh terdaftar dua kali** dalam kepanitiaan proposal yang sama.
+* **Penomoran Proposal Otomatis:** Menghasilkan nomor resmi format `001/NVSTLK/HIMA/PCU/VI/2026` (konsonan judul + bulan Romawi + nomor urut otomatis).
+* **Aturan BPH Kepanitiaan:** Divisi BPH hanya boleh diisi jabatan BPH, divalidasi real-time (onchange) sekaligus lewat constraint.
+* **Compute Logic:** Menghitung otomatis jumlah prodi/jurusan, jumlah anggota & proposal organisasi, serta kuota kelas (`terisi`, `sisa_kuota`, `is_available`) memakai `@api.depends`.
+* **Auto-isi Cakupan Akademik:** Onchange pada Mata Kuliah, memilih Jurusan otomatis mengisi Prodi & Fakultas ke atas.
 
-### 4. VIEW INHERITANCE & SECURITY
+### 5. Override Method
+* **Override `create` (Mahasiswa & Dosen):** Otomatis membuatkan akun login (`res.users`) berdasarkan email yang diinput.
+* **Override `create` / `write` / `unlink` (Proposal & Transkrip):** Menolak proposal dari organisasi non-aktif, serta mengunci fungsi Edit & Delete bila dokumen sudah `Approved`/diajukan (mencegah manipulasi setelah disetujui).
 
-* View & Menu: Menyusun seluruh form/list master data akademik beserta menu sidebar (Master Data, KRS, Organisasi, Proposal Kegiatan).
-* Report PDF (QWeb): Membuat cetak Proposal Kegiatan menjadi dokumen PDF.
-* Keamanan Database (Record Rule): Mahasiswa hanya melihat proposal miliknya sendiri, sedangkan Lecturer melihat semua (`rule_proposal_own` vs `rule_proposal_manager`).
-* Pemisahan Hak Akses: Hak akses CRUD per model dibedakan untuk Student vs Lecturer di file `ir.model.access.csv`.
-
-# REYHAN
-### 1. MODEL & RELASI (Architecture & ORM)
-
-* Master Data Akademik: Membangun seluruh master data inti di `campus_core` (Mahasiswa, Dosen, Mata Kuliah, Kelas) sebagai fondasi seluruh sistem.
-* Hirarki Struktur Kampus: Merancang relasi berjenjang Fakultas $\rightarrow$ Prodi $\rightarrow$ Jurusan, dengan `fakultas_id` pada Jurusan di-related otomatis dari Prodi agar hirarki saling terhubung.
-* Dynamic Selection: Dropdown Angkatan & Semester Aktif di-generate otomatis dari tahun berjalan (library Python datetime) tanpa hard-code, beserta default semester berjalan.
-* Relasi Dua Arah Dosen ↔ Mata Kuliah: Many2many memakai relasi yang sama persis (`campus_mk_dosen_rel`) sehingga "Dosen Pengampu" dan "Mata Kuliah Diampu" konsisten dua arah.
-* Master Data Organisasi: Membangun seluruh master data `campus_hr` (Tipe Organisasi, Jabatan, Jabatan Kepanitiaan, Divisi) sebagai acuan fitur Organisasi.
-
-### 2. WORKFLOW & BUSINESS LOGIC
-
-* Fondasi Sistem KRS/Enrollment: Membangun inti `campus.krs` — lembar KRS per mahasiswa per semester beserta baris mata kuliahnya.
-* Validasi Bisnis KRS (Constraints):
-* Limit maksimal SKS (24 SKS).
-* Cegah jadwal kelas yang bentrok (`is_bentrok_with`).
-* Sistem kuota kelas rebutan (FCFS).
-* Hanya mahasiswa berstatus `Aktif` yang boleh mengisi KRS, dan 1 mata kuliah = 1 kelas.
-* Workflow KRS Berjenjang: Alur Student ↔ Lecturer melalui status `Draft` $\rightarrow$ `Submitted` $\rightarrow$ `Processed`.
-* Fondasi Transkrip Nilai: Membangun awal `campus.transkrip` (1 Mahasiswa = 1 Transkrip) beserta konversi nilai angka (0-100) menjadi huruf, bobot, dan nilai mutu.
-* Fitur Organisasi (keseluruhan): Membangun penuh modul `campus_hr` — Data Organisasi, Proposal Kegiatan, dan Kepanitiaan.
-* Penomoran Proposal Otomatis: Menghasilkan nomor resmi format `001/NVSTLK/HIMA/PCU/VI/2026` (ambil konsonan judul + bulan Romawi + nomor urut otomatis).
-* Aturan BPH Kepanitiaan: Divisi BPH hanya boleh diisi jabatan BPH, divalidasi real-time (onchange) sekaligus lewat constraint.
-
-### 3. OVERRIDE METHOD & COMPUTE LOGIC
-
-* Compute Logic: Menghitung otomatis jumlah prodi/jurusan, jumlah anggota & proposal organisasi, serta kuota kelas (`terisi`, `sisa_kuota`, `is_available`) menggunakan @api.depends.
-* Override CRUD (Penguncian Data): Override `create`/`write`/`unlink` agar Proposal & Transkrip yang sudah `Approved` tidak bisa diubah/dihapus, serta menolak proposal dari organisasi non-aktif.
-* Auto-isi Cakupan Akademik: Onchange pada Mata Kuliah — memilih Jurusan otomatis mengisi Prodi & Fakultas ke atas.
-
-### 4. VIEW INHERITANCE & SECURITY
-
-* View & Menu: Menyusun seluruh form/list master data akademik beserta menu sidebar (Master Data, KRS, Organisasi, Proposal Kegiatan).
-* Report PDF (QWeb): Membuat cetak Proposal Kegiatan menjadi dokumen PDF.
-* Keamanan Database (Record Rule): Mahasiswa hanya melihat proposal miliknya sendiri, sedangkan Lecturer melihat semua (`rule_proposal_own` vs `rule_proposal_manager`).
-* Pemisahan Hak Akses: Hak akses CRUD per model dibedakan untuk Student vs Lecturer di file `ir.model.access.csv`.
+### 6. View & Security
+* **View & Menu:** Menyusun seluruh form/list master data akademik beserta menu sidebar (Master Data, KRS, Organisasi, Proposal Kegiatan).
+* **Report PDF (QWeb):** Mencetak Proposal Kegiatan menjadi dokumen PDF.
+* **Record Rules:** Mahasiswa hanya melihat proposal miliknya sendiri, sedangkan Lecturer melihat semua (`rule_proposal_own` vs `rule_proposal_manager`).
+* **Access Rights:** Hak akses CRUD per model dibedakan untuk Student vs Lecturer di file `ir.model.access.csv`.
 
 ## Modul: Mata Kuliah, Kelas & Absensi
 # CLARISA
