@@ -35,19 +35,19 @@
                     </div>
                     <group>
                         <group string="Identitas">
-                            <field name="nim"/>
-                            <field name="email"/>
-                            <field name="tempat_lahir"/>
-                            <field name="tanggal_lahir" options="{'datepicker': {'yearRange': 'c-60:c+0'}}"/>
-                            <field name="jenis_kelamin"/>
+                            <field name="nim" required="1"/>
+                            <field name="email" required="1"/>
+                            <field name="tempat_lahir" required="1"/>
+                            <field name="tanggal_lahir" options="{'datepicker': {'yearRange': 'c-60:c+0'}}" required="1"/>
+                            <field name="jenis_kelamin" required="1"/>
                             <field name="alamat" required="1"/>
                         </group>
                         <group string="Akademik">
                             <field name="fakultas_id" required="1"/>
                             <field name="prodi_id" required="1"/>
                             <field name="jurusan_id" required="1"/>
-                            <field name="angkatan"/>
-                            <field name="semester_aktif"/>
+                            <field name="angkatan" required="1"/>
+                            <field name="semester_aktif" required="1"/>
                             <field name="ipk"/>
                             <field name="status"/>
                         </group>
@@ -97,15 +97,28 @@
     <menuitem id="menu_campus_mahasiswa" name="Mahasiswa" parent="menu_campus_master" action="action_campus_mahasiswa" sequence="10"
           groups="campus_core.group_campus_lecturer,campus_core.group_academic_manager"/>
 
-    <!-- Profil Saya: mahasiswa membuka data dirinya sendiri (langsung ke form) -->
     <record id="action_campus_my_profile" model="ir.actions.server">
         <field name="name">Profil Saya</field>
         <field name="model_id" ref="model_campus_mahasiswa"/>
         <field name="state">code</field>
         <field name="code">
+            <![CDATA[
+# 1. Cek apakah user yang login punya role Manager
+is_manager = env.user.has_group('campus_core.group_academic_manager')
+
 mhs = env['campus.mahasiswa'].search([('user_id', '=', env.uid)], limit=1)
 dosen = env['campus.dosen'].search([('user_id', '=', env.uid)], limit=1)
-if mhs:
+
+if is_manager:
+    # JIKA MANAGER: Lewati pengecekan, langsung buka daftar seluruh mahasiswa (List & Form)
+    action = {
+        'type': 'ir.actions.act_window',
+        'name': 'Daftar Mahasiswa',
+        'res_model': 'campus.mahasiswa',
+        'view_mode': 'list,form',
+        'target': 'current',
+    }
+elif mhs:
     action = {
         'type': 'ir.actions.act_window',
         'name': 'Profil Saya',
@@ -129,17 +142,17 @@ else:
         'tag': 'display_notification',
         'params': {
             'title': 'Profil tidak ditemukan',
-            'message': 'Akun ini belum terhubung ke data mahasiswa maupun dosen. '
-                       'Hubungi admin akademik.',
+            'message': 'Akun ini belum terhubung ke data mahasiswa maupun dosen. Hubungi admin akademik.',
             'type': 'warning',
             'sticky': False,
         },
     }
+            ]]>
         </field>
     </record>
 
     <menuitem id="menu_campus_my_profile" name="Profil Saya"
               parent="menu_campus_root" sequence="50"
               action="action_campus_my_profile"
-              groups="campus_core.group_campus_student"/>
+              groups="campus_core.group_campus_student,campus_core.group_campus_lecturer"/>
 </odoo>

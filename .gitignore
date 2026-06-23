@@ -1,2 +1,10 @@
+# IDE / editor
 .idea/
-.idea/workspace.xml
+.vscode/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+# Arsip
+*.zip

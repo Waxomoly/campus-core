@@ -30,10 +30,11 @@
                             groups="campus_core.group_campus_student"/>
                     <!-- Lecturer: proses setelah memeriksa -->
                     <button name="action_process" string="Proses KRS" type="object"
-                            class="oe_highlight" invisible="state != 'submitted'"
-                            groups="campus_core.group_campus_lecturer"/>
+                        class="oe_highlight" invisible="state != 'submitted'"
+                        groups="campus_core.group_campus_lecturer,campus_core.group_academic_manager"/>
                     <button name="action_reset" string="Kembali Ke Draft" type="object"
-                            invisible="state != 'submitted'"/>
+                        invisible="state != 'submitted'"
+                        groups="campus_core.group_campus_lecturer,campus_core.group_academic_manager"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,submitted,processed"/>
                 </header>
                 <sheet>
@@ -74,11 +75,12 @@
                                     <button name="action_approve_line" type="object"
                                             string="Setujui" icon="fa-check" title="Setujui"
                                             invisible="parent.state != 'submitted' or state == 'approved'"
-                                            groups="campus_core.group_campus_lecturer"/>
+                                            groups="campus_core.group_campus_lecturer,campus_core.group_academic_manager"/>
+
                                     <button name="action_reject_line" type="object"
                                             string="Tolak" icon="fa-times" title="Tolak"
                                             invisible="parent.state != 'submitted' or state == 'rejected'"
-                                            groups="campus_core.group_campus_lecturer"/>
+                                            groups="campus_core.group_campus_lecturer,campus_core.group_academic_manager"/>
                                 </list>
                             </field>
                             <group class="oe_subtotal_footer oe_right">
