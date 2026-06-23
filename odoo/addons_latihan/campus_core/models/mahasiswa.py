@@ -89,6 +89,10 @@ class CampusMahasiswa(models.Model):
                     'name': vals.get('name'),
                     'login': vals.get('email'),
                     'email': vals.get('email'),
+                    # Password awal default = 1234 (dianjurkan diganti nanti)
+                    'password': '1234',
+                    # Beri role "Mahasiswa" agar akun bisa mengakses fitur campus
+                    'group_ids': [(4, self.env.ref('campus_core.group_campus_student').id)],
                 }
                 new_user = self.env['res.users'].with_context(no_reset_password=True).create(user_vals)
 

@@ -40,7 +40,7 @@
                             <field name="tempat_lahir"/>
                             <field name="tanggal_lahir" options="{'datepicker': {'yearRange': 'c-60:c+0'}}"/>
                             <field name="jenis_kelamin"/>
-                            <field name="alamat"/>
+                            <field name="alamat" required="1"/>
                         </group>
                         <group string="Akademik">
                             <field name="fakultas_id" required="1"/>
@@ -96,4 +96,50 @@
 
     <menuitem id="menu_campus_mahasiswa" name="Mahasiswa" parent="menu_campus_master" action="action_campus_mahasiswa" sequence="10"
           groups="campus_core.group_campus_lecturer,campus_core.group_academic_manager"/>
+
+    <!-- Profil Saya: mahasiswa membuka data dirinya sendiri (langsung ke form) -->
+    <record id="action_campus_my_profile" model="ir.actions.server">
+        <field name="name">Profil Saya</field>
+        <field name="model_id" ref="model_campus_mahasiswa"/>
+        <field name="state">code</field>
+        <field name="code">
+mhs = env['campus.mahasiswa'].search([('user_id', '=', env.uid)], limit=1)
+dosen = env['campus.dosen'].search([('user_id', '=', env.uid)], limit=1)
+if mhs:
+    action = {
+        'type': 'ir.actions.act_window',
+        'name': 'Profil Saya',
+        'res_model': 'campus.mahasiswa',
+        'view_mode': 'form',
+        'res_id': mhs.id,
+        'target': 'current',
+    }
+elif dosen:
+    action = {
+        'type': 'ir.actions.act_window',
+        'name': 'Profil Saya',
+        'res_model': 'campus.dosen',
+        'view_mode': 'form',
+        'res_id': dosen.id,
+        'target': 'current',
+    }
+else:
+    action = {
+        'type': 'ir.actions.client',
+        'tag': 'display_notification',
+        'params': {
+            'title': 'Profil tidak ditemukan',
+            'message': 'Akun ini belum terhubung ke data mahasiswa maupun dosen. '
+                       'Hubungi admin akademik.',
+            'type': 'warning',
+            'sticky': False,
+        },
+    }
+        </field>
+    </record>
+
+    <menuitem id="menu_campus_my_profile" name="Profil Saya"
+              parent="menu_campus_root" sequence="5"
+              action="action_campus_my_profile"
+              groups="campus_core.group_campus_student"/>
 </odoo>

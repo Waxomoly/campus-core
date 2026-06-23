@@ -11,6 +11,8 @@ class CampusDosen(models.Model):
     nip = fields.Char(string='NIP', required=True, copy=False, index=True)
     name = fields.Char(string='Nama Dosen', required=True)
     email = fields.Char(string='Email', required=True, copy=False)
+    alamat = fields.Text(string='Alamat')
+    nomor_rekening = fields.Char(string='Nomor Rekening')
 
     user_id = fields.Many2one('res.users', string='Akun Pengguna', readonly=True, copy=False)
 
@@ -53,8 +55,10 @@ class CampusDosen(models.Model):
                     'name': vals.get('name'),
                     'login': vals.get('email'),  # Email digunakan sebagai username untuk login
                     'email': vals.get('email'),
-                    # Menambahkan grup hak akses khusus Dosen jika Anda memilikinya:
-                    # 'groups_id': [Command.link(self.env.ref('campus_facility.group_facility_user').id)]
+                    # Password awal default = 1234 (dianjurkan diganti nanti)
+                    'password': '1234',
+                    # Beri role "Dosen" agar akun bisa login & mengakses fitur dosen
+                    'group_ids': [(4, self.env.ref('campus_core.group_campus_lecturer').id)],
                 }
 
                 # 3. Create record di res.users
