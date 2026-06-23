@@ -42,6 +42,12 @@
         <field name="groups" eval="[(4, ref('group_academic_manager'))]"/>
         <field name="domain_force">[(1, '=', 1)]</field>
     </record>
+    <record id="rule_mahasiswa_lecturer" model="ir.rule">
+        <field name="name">Mahasiswa: Dosen lihat semua</field>
+        <field name="model_id" ref="model_campus_mahasiswa"/>
+        <field name="groups" eval="[(4, ref('group_campus_lecturer'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
 
     <record id="rule_krs_own_student" model="ir.rule">
         <field name="name">KRS: Mahasiswa hanya lihat miliknya</field>
@@ -53,6 +59,12 @@
         <field name="name">KRS: Manager lihat semua</field>
         <field name="model_id" ref="model_campus_krs"/>
         <field name="groups" eval="[(4, ref('group_academic_manager'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <record id="rule_krs_lecturer" model="ir.rule">
+        <field name="name">KRS: Dosen lihat semua</field>
+        <field name="model_id" ref="model_campus_krs"/>
+        <field name="groups" eval="[(4, ref('group_campus_lecturer'))]"/>
         <field name="domain_force">[(1, '=', 1)]</field>
     </record>
 </odoo>

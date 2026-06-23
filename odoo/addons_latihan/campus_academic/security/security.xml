@@ -13,4 +13,11 @@
         <field name="groups" eval="[(4, ref('campus_core.group_academic_manager'))]"/>
         <field name="domain_force">[(1, '=', 1)]</field>
     </record>
+
+    <record id="rule_transkrip_lecturer" model="ir.rule">
+        <field name="name">Transkrip: Dosen melihat semua</field>
+        <field name="model_id" ref="model_campus_transkrip"/>
+        <field name="groups" eval="[(4, ref('campus_core.group_campus_lecturer'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
 </odoo>

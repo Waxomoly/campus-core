@@ -10,6 +10,8 @@ class CampusDosen(models.Model):
     nip = fields.Char(string='NIP', required=True, copy=False, index=True)
     name = fields.Char(string='Nama Dosen', required=True)
     email = fields.Char(string='Email', required=True, copy=False)
+    alamat = fields.Text(string='Alamat')
+    nomor_rekening = fields.Char(string='Nomor Rekening')
 
     user_id = fields.Many2one('res.users', string='Akun Pengguna', readonly=True, copy=False)
 
