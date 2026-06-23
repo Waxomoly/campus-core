@@ -1,5 +1,4 @@
-from odoo import models, fields, api
-
+from odoo import models, fields, api, Command
 from odoo.exceptions import ValidationError
 
 class CampusDosen(models.Model):
@@ -55,10 +54,9 @@ class CampusDosen(models.Model):
                     'name': vals.get('name'),
                     'login': vals.get('email'),  # Email digunakan sebagai username untuk login
                     'email': vals.get('email'),
-                    # Password awal default = 1234 (dianjurkan diganti nanti)
                     'password': '1234',
-                    # Beri role "Dosen" agar akun bisa login & mengakses fitur dosen
-                    'group_ids': [(4, self.env.ref('campus_core.group_campus_lecturer').id)],
+                    # 4. SET GRUP AKSES DOSEN (Lecturer)
+                    'group_ids': [Command.link(self.env.ref('campus_core.group_campus_lecturer').id)]
                 }
 
                 # 3. Create record di res.users
@@ -82,3 +80,24 @@ class CampusDosen(models.Model):
     def _onchange_prodi_id(self):
         if self.jurusan_id and self.jurusan_id.prodi_id != self.prodi_id:
             self.jurusan_id = False
+
+    def write(self, vals):
+        # 1. Jalankan proses update bawaan Odoo terlebih dahulu
+        res = super(CampusDosen, self).write(vals)
+
+        # 2. Cek apakah ada perubahan pada field 'email' atau 'name'
+        if 'email' in vals or 'name' in vals:
+            for record in self:
+                # 3. Jika dosen ini sudah punya akun Odoo, update akunnya
+                if record.user_id:
+                    user_update = {}
+                    if 'name' in vals:
+                        user_update['name'] = vals['name']
+                    if 'email' in vals:
+                        user_update['login'] = vals['email']  # Username login
+                        user_update['email'] = vals['email']  # Email notifikasi
+
+                    # Gunakan sudo() agar proses update tidak terhalang hak akses
+                    record.user_id.sudo().write(user_update)
+
+        return res

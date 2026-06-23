@@ -1,6 +1,6 @@
 from datetime import date
 
-from odoo import models, fields, api
+from odoo import models, fields, api, Command
 from odoo.exceptions import ValidationError
 
 # range tahun untuk dropdown angkatan & semester aktif
@@ -89,10 +89,9 @@ class CampusMahasiswa(models.Model):
                     'name': vals.get('name'),
                     'login': vals.get('email'),
                     'email': vals.get('email'),
-                    # Password awal default = 1234 (dianjurkan diganti nanti)
                     'password': '1234',
-                    # Beri role "Mahasiswa" agar akun bisa mengakses fitur campus
-                    'group_ids': [(4, self.env.ref('campus_core.group_campus_student').id)],
+                    # 4. SET GRUP AKSES DOSEN (Lecturer)
+                    'group_ids': [Command.link(self.env.ref('campus_core.group_campus_student').id)]
                 }
                 new_user = self.env['res.users'].with_context(no_reset_password=True).create(user_vals)
 
@@ -154,3 +153,24 @@ class CampusMahasiswa(models.Model):
                     "IPK harus berada di rentang 0.00 - 4.00! "
                     "(IPK %s saat ini: %.2f)" % (record.name, record.ipk)
                 )
+
+    def write(self, vals):
+        # 1. Jalankan proses update bawaan Odoo terlebih dahulu
+        res = super(CampusMahasiswa, self).write(vals)
+
+        # 2. Cek apakah ada perubahan pada field 'email' atau 'name'
+        if 'email' in vals or 'name' in vals:
+            for record in self:
+                # 3. Jika mahasiswa ini sudah punya akun Odoo, update akunnya
+                if record.user_id:
+                    user_update = {}
+                    if 'name' in vals:
+                        user_update['name'] = vals['name']
+                    if 'email' in vals:
+                        user_update['login'] = vals['email']  # Username login
+                        user_update['email'] = vals['email']  # Email notifikasi
+
+                    # Gunakan sudo() agar proses update tidak terhalang hak akses
+                    record.user_id.sudo().write(user_update)
+
+        return res

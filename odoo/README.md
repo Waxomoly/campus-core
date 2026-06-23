@@ -149,3 +149,39 @@ c. Groups:
 * **Attendance Manager:** Pengguna dengan role Attendance Manager memiliki akses penuh terhadap seluruh data sesi dan detail absensi lintas kelas.
 * **Pemisahan Hak Akses UI:** Role Campus Student dan Campus Lecturer ditempatkan dalam satu privilege sehingga pengguna hanya dapat memiliki satu peran utama. Hak pengelolaan absensi diatur melalui privilege Attendance Access yang memungkinkan dosen tertentu memperoleh akses sebagai Attendance Manager.
 * **Access Control:** Hak Read, Write, Create, dan Delete diatur `ir.model.access.csv`.
+
+## Modul: Facility
+# KELLY
+### 1. MODEL & RELASI (Architecture & ORM)
+
+* Master Data Fasilitas & Ruangan: Membangun seluruh master data untuk aset fisik di `campus_facility` (Ruangan, Kapasitas, Fasilitas, Stok) yang terintegrasi langsung dengan entitas sivitas akademika.
+* Relasi Dinamis Peminjam (Polymorphic-like): Field peminjam secara otomatis menyesuaikan relasi (ke model `campus.mahasiswa` atau `campus.dosen`) berdasarkan pemilihan tipe peminjam pada *radio button* (jika manager) atau role peminjam di campus_core (jika non-manager).
+* Relasi Tracking & Audit: Menyimpan relasi `created_by_id` dan `status_changed_by_id` yang terhubung ke `res.users` untuk melacak jejak audit pihak pembuat dan pengubah status.
+* Pembuatan akun untuk setiap mahasiswa/dosen yang dibuat di campus_core. (modul campus_core)
+
+### 2. WORKFLOW & BUSINESS LOGIC
+
+* Fondasi Reservasi (Facility & Room Booking): Membangun inti transaksi peminjaman `campus.facility.booking` dan `campus.room.booking` dengan alur persetujuan: `Draft` $\rightarrow$ `Submitted` $\rightarrow$ `Approved` / `Rejected`.
+* Validasi Bisnis Reservasi (Constraints):
+  * Mencegah jadwal peminjaman ruangan yang saling bentrok (overlap waktu).
+  * Mencegah peminjaman jika sisa stok fasilitas/barang pada rentang waktu tersebut tidak mencukupi.
+  * Validasi jumlah peserta tidak boleh melebihi kapasitas maksimum ruangan.
+  * Logika waktu: waktu selesai wajib lebih besar (setelah) waktu mulai.
+* Penomoran Reservasi Otomatis (Sequence on-the-fly): Menghasilkan nomor tiket secara otomatis berdasarkan kode aset (contoh: `BKR/R01/00001` atau `BK/LAB/00001`).
+* Deteksi Profil Otomatis: Sistem membaca akun yang sedang *login*, mendeteksi *role*-nya, lalu otomatis mengisi form identitas (Mahasiswa/Dosen) untuk meminimalisir kesalahan input.
+
+### 3. OVERRIDE METHOD & COMPUTE LOGIC
+
+* Compute Stok Dinamis: Menghitung otomatis `kuantitas_tersedia` (`@api.depends`) dengan mengambil total inventaris kampus lalu menguranginya dengan jumlah barang yang sedang dipinjam (overlap) pada jadwal yang dipilih.
+* Override CRUD (Penguncian & Proteksi Data):
+  * Override `unlink`: Memproteksi dokumen; data yang sudah `Approved` sama sekali tidak bisa dihapus. Non-manager hanya diizinkan menghapus reservasi miliknya yang masih *Draft*.
+  * Override `write`: Mencegah akun lain mengubah status kembali ke *Draft* jika ia bukan pembuat asli dokumen tersebut.
+  * Override `create`: Melakukan validasi kelayakan *user* sebelum rekaman masuk ke *database* dan menginisialisasi *sequence*.
+* Onchange Validation: Memunculkan notifikasi *pop-up warning* di UI secara *real-time* ketika input jadwal tidak masuk akal atau peserta melampaui kapasitas ruang.
+
+### 4. VIEW INHERITANCE & SECURITY
+
+* Arsitektur Keamanan Odoo 19: Mengimplementasikan struktur *Privilege* (`res.groups.privilege`) untuk meletekkan opsi hak akses di bawah kategori Campus pada pengaturan pengguna.
+* Keamanan Database (Record Rule): Peminjam hanya dapat melihat riwayat peminjamannya sendiri (`rule_booking_own`), sedangkan Manager dapat melihat dan memproses seluruh data di kampus (`rule_booking_manager`).
+* Dynamic View & UI/UX: Mendesain antarmuka *form* dengan *widget* modern (`radio`, `statusbar`, `badge`, `many2one_avatar_user`) serta mengatur *readonly* dan *invisible* secara dinamis berdasarkan status dokumen.
+* Report PDF (QWeb): Merancang format cetak dokumen Bukti Reservasi Ruangan ke dalam format PDF (`report_room_booking_doc`) yang memuat data lengkap peminjam dan status otorisasi *approval*.
