@@ -117,10 +117,5 @@
     <menuitem id="menu_campus_attendance" name="Absensi"
               parent="campus_core.menu_campus_academic"
               action="action_campus_attendance" sequence="30"
-              groups="campus_core.group_campus_lecturer,campus_attendance.group_attendance_manager"/>
-
-    <menuitem id="menu_campus_attendance" name="Absensi"
-              parent="campus_core.menu_campus_academic"
-              action="action_campus_attendance" sequence="30"
               groups="campus_core.group_campus_lecturer"/>
 </odoo>
